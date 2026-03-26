@@ -53,7 +53,7 @@ export default async function Page({ params }: PageProps) {
         )}
 
         {frontmatter.title && (
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-8">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-8">
             {frontmatter.title}
           </h1>
         )}

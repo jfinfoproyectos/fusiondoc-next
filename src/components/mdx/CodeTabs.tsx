@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import React from "react";
+import { Icon } from "@iconify/react";
 
 interface CodeTabsProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export function CodeTabs({ children }: CodeTabsProps) {
       const element = child as React.ReactElement<any>;
       return {
         title: element.props.title || "Tab",
+        icon: element.props.icon,
         value: element.props.value || element.props.title || Math.random().toString(),
         content: element.props.children
       };
@@ -35,8 +37,9 @@ export function CodeTabs({ children }: CodeTabsProps) {
           <TabsTrigger 
             key={tab?.value} 
             value={tab?.value as string}
-            className="!rounded-md !border-0 data-[state=active]:!bg-white/10 data-[state=active]:!text-white data-[state=active]:!shadow-none px-4 py-1.5 mx-0.5 !text-white/60 hover:!text-white transition-colors"
+            className="!rounded-md !border-0 data-[state=active]:!bg-white/10 data-[state=active]:!text-white data-[state=active]:!shadow-none px-4 py-1.5 mx-0.5 !text-white/60 hover:!text-white transition-colors flex items-center gap-2"
           >
+            {tab?.icon && <Icon icon={tab?.icon} className="h-4 w-4" />}
             {tab?.title}
           </TabsTrigger>
         ))}
