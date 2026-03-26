@@ -1,0 +1,12 @@
+Usage: shadcn mcp [options] [command]
+
+MCP server and configuration commands
+
+Options:
+  -c, --cwd <cwd>  the working directory. defaults to the current directory.
+                   (default:
+                   "C:\\Users\\jhonf\\Desktop\\Info\\2026\\Proyectos\\documentacion\\fusiondoc-next")
+  -h, --help       display help for command
+
+Commands:
+  init [options]   Initialize MCP configuration for your client

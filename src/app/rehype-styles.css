@@ -1,0 +1,32 @@
+/* Add this to globals.css -> append to the end */
+@layer utilities {
+  code {
+    counter-reset: line;
+  }
+
+  /* When data-line-numbers is toggled via class .show-line-numbers on the figure container */
+  .show-line-numbers code > [data-line]::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 1.5rem;
+    margin-right: 1.5rem;
+    text-align: right;
+    color: rgb(113 113 122); /* text-zinc-500 */
+  }
+
+  code > [data-line] {
+    padding-right: 1.5rem;
+    border-left: 2px solid transparent; /* reserve space for highlight border */
+  }
+
+  .show-line-numbers code > [data-line] {
+    padding-left: 1rem;
+  }
+
+  /* Highlighting lines */
+  code > [data-highlighted-line] {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-left-color: #3b82f6 !important;
+  }
+}
