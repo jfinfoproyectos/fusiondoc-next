@@ -11,6 +11,8 @@ import remarkCustomDirectives from "../lib/remark-custom";
 import * as prod from "react/jsx-runtime";
 import { CodeTabs, CodeTab } from "./mdx/CodeTabs";
 import { CodeBlockWrapper } from "./mdx/CodeBlockWrapper";
+import { Terminal } from "./mdx/Terminal";
+import { Steps, Step } from "./mdx/Steps";
 
 interface MarkdownRendererProps {
   content: string;
@@ -63,6 +65,9 @@ export default async function MarkdownRenderer({ content }: MarkdownRendererProp
       components: {
         tabs: CodeTabs,
         tab: CodeTab,
+        terminal: Terminal,
+        steps: Steps,
+        step: Step,
         figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
           // React might pass "" or true for a boolean attribute. We just need to check if it's explicitly undefined.
           if (isPrettyCode === undefined && !('data-rehype-pretty-code-figure' in props)) {

@@ -1,5 +1,12 @@
 import { GITHUB_CONFIG } from '@/config';
 import matter from 'gray-matter';
+import fs from 'fs';
+import path from 'path';
+import { promisify } from 'util';
+
+const readFile = promisify(fs.readFile);
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
 
 // ============================================================
 // TIPOS
@@ -132,6 +139,63 @@ async function getFileContent(file: GithubTreeItem): Promise<{ content: string; 
 // ============================================================
 
 export async function getNavigation(): Promise<NavGroup[]> {
+  const localPath = process.env.LOCAL_DOCS_PATH;
+  if (localPath && fs.existsSync(localPath)) {
+    try {
+      const groupsMap = new Map<string, NavItem[]>();
+      const groupOrderMap = new Map<string, number>();
+
+      const scanDirectory = async (dir: string, baseRelative: string = "") => {
+        const items = await readdir(dir);
+        for (const item of items) {
+          const fullPath = path.join(dir, item);
+          const relativeItem = path.join(baseRelative, item);
+          const s = await stat(fullPath);
+
+          if (s.isDirectory()) {
+            await scanDirectory(fullPath, relativeItem);
+          } else if (item.endsWith(".md")) {
+            const content = await readFile(fullPath, "utf-8");
+            const { data: frontmatter } = matter(content);
+            if (frontmatter.draft === true) continue;
+
+            const slug = relativeItem.replace(/\.md$/, "").replace(/\\/g, "/");
+            const parts = slug.split("/");
+            const fileName = parts.pop() || "";
+            const defaultCategory = parts.length > 0 ? parts[0] : "General";
+
+            const title = frontmatter.title || fileName.replace(/-/g, " ");
+            const category = frontmatter.category || defaultCategory;
+            const order = frontmatter.order || 99;
+            const catOrder = frontmatter.categoryOrder || 99;
+
+            if (!groupsMap.has(category)) {
+              groupsMap.set(category, []);
+              groupOrderMap.set(category, catOrder);
+            }
+            groupsMap.get(category)?.push({ title, href: `/${slug}`, order });
+          }
+        }
+      };
+
+      await scanDirectory(localPath);
+
+      const navGroups: NavGroup[] = [];
+      groupsMap.forEach((links, categoryTitle) => {
+        links.sort((a, b) => (a.order || 0) - (b.order || 0));
+        navGroups.push({
+          title: categoryTitle.charAt(0).toUpperCase() + categoryTitle.slice(1),
+          order: groupOrderMap.get(categoryTitle),
+          links,
+        });
+      });
+      navGroups.sort((a, b) => (a.order || 0) - (b.order || 0));
+      return navGroups;
+    } catch (err) {
+      console.error("Error loading local navigation:", err);
+    }
+  }
+
   try {
     const treeData = await getGitTree();
     if (!treeData) return cachedNavigation || [];
@@ -222,6 +286,24 @@ export async function getNavigation(): Promise<NavGroup[]> {
  * Usa el árbol de GitHub para verificar el SHA antes de descargar.
  */
 export async function getDocContent(slugArray: string[] = ['index']): Promise<DocResult | null> {
+  const localBase = process.env.LOCAL_DOCS_PATH;
+  if (localBase && fs.existsSync(localBase)) {
+    const localFile = path.join(localBase, ...slugArray) + ".md";
+    if (fs.existsSync(localFile)) {
+      try {
+        const content = await readFile(localFile, "utf-8");
+        const s = await stat(localFile);
+        return {
+          content,
+          sha: s.mtimeMs.toString(), // Use modification time as SHA for local dev
+          fromCache: false,
+        };
+      } catch (err) {
+        console.error("Error reading local file:", err);
+      }
+    }
+  }
+
   const filePath = `${GITHUB_CONFIG.docsPath}/${slugArray.join('/')}.md`;
 
   const treeData = await getGitTree();
