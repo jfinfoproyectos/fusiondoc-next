@@ -1,87 +1,117 @@
-import { unified } from "unified";
-import remarkParse from "remark-parse";
+import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
-import remarkRehype from "remark-rehype";
-import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
-import rehypeReact from "rehype-react";
-import remarkDirective from "remark-directive";
-import remarkCustomDirectives from "../lib/remark-custom";
-import * as prod from "react/jsx-runtime";
 import { CodeTabs, CodeTab } from "./mdx/CodeTabs";
 import { CodeBlockWrapper } from "./mdx/CodeBlockWrapper";
 import { Terminal } from "./mdx/Terminal";
 import { Steps, Step } from "./mdx/Steps";
+import Alert from "./mdx/Alert";
+import { MdxIcon } from "./mdx/MdxIcon";
+import { Accordion, AccordionItem } from "./mdx/Accordion";
+import { Carousel } from "./mdx/Carousel";
+import { ZoomImage } from "./mdx/ZoomImage";
+import { Video, Audio } from "./mdx/Media";
+import { GithubRepo } from "./mdx/GithubRepo";
+import { FileTree, Folder, File } from "./mdx/FileTree";
+import { BentoGrid, BentoCard, Timeline, TimelineItem } from "./mdx/ExtendedComponents";
+import PropertyTable from "./mdx/PropertyTable";
+import { Hero } from "./mdx/Hero";
+import { Mermaid } from "./mdx/Mermaid";
+import { Badge } from "./mdx/Badge";
 
 interface MarkdownRendererProps {
   content: string;
 }
 
+const components = {
+  // Map standard HTML tags or custom components
+  CodeTabs,
+  CodeTab,
+  Terminal,
+  Steps,
+  Step,
+  CodeBlockWrapper,
+  Alert,
+  Accordion,
+  AccordionItem,
+  Carousel,
+  ZoomImage,
+  Video,
+  Audio,
+  GithubRepo,
+  FileTree,
+  Folder,
+  File,
+  PropertyTable,
+  PropertyGrid: PropertyTable,
+  Hero,
+  Mermaid,
+  BentoGrid,
+  BentoCard,
+  Timeline,
+  TimelineItem,
+  Badge,
+  // Aliases
+  icon: MdxIcon,
+  Icon: MdxIcon,
+  accordion: Accordion,
+  accordionitem: AccordionItem,
+  carousel: Carousel,
+  zoomimage: ZoomImage,
+  video: Video,
+  audio: Audio,
+  github: GithubRepo,
+  repo: GithubRepo,
+  Github: GithubRepo,
+  tabs: CodeTabs,
+  tab: CodeTab,
+  terminal: Terminal,
+  steps: Steps,
+  step: Step,
+  alert: Alert,
+  filetree: FileTree,
+  folder: Folder,
+  file: File,
+  props: PropertyTable,
+  propGrid: PropertyTable,
+  hero: Hero,
+  mermaid: Mermaid,
+  flow: Mermaid,
+  chart: Mermaid,
+  bento: BentoGrid,
+  bentocard: BentoCard,
+  timeline: Timeline,
+  timelineitem: TimelineItem,
+  badge: Badge,
+  // Override figure to wrap code blocks
+  figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
+    if (isPrettyCode !== undefined || 'data-rehype-pretty-code-figure' in props) {
+      return <CodeBlockWrapper {...props} data-rehype-pretty-code-figure={isPrettyCode}>{children}</CodeBlockWrapper>;
+    }
+    return <figure {...props}>{children}</figure>;
+  },
+};
+
 export default async function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const prettyCodeOptions = {
-    theme: "github-dark",
-    keepBackground: false,
+  const mdxOptions: any = {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [
+      rehypeSlug,
+      [rehypePrettyCode, {
+        theme: "github-dark",
+        keepBackground: false,
+      }],
+    ],
   };
-
-  // Traversal helper
-  const visit = (node: any, tagName: string, callback: (node: any) => void) => {
-    if (node.tagName === tagName) {
-      callback(node);
-    }
-    if (node.children) {
-      node.children.forEach((child: any) => visit(child, tagName, callback));
-    }
-  };
-
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkDirective)
-    .use(remarkCustomDirectives)
-    .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: true })
-    .use(() => (tree: any) => {
-      visit(tree, "code", (node: any) => {
-        if (node.data && node.data.meta) {
-          node.properties = node.properties || {};
-          node.properties.metaString = node.data.meta;
-        }
-      });
-    })
-    .use(rehypeRaw)
-    .use(() => (tree: any) => {
-      visit(tree, "code", (node: any) => {
-        if (node.properties && node.properties.metaString) {
-          node.data = node.data || {};
-          node.data.meta = node.properties.metaString;
-          // rehype-pretty-code expects it directly as a string to parse
-        }
-      });
-    })
-    .use(rehypeSlug)
-    .use(rehypePrettyCode, prettyCodeOptions)
-    .use(rehypeReact, {
-      ...prod,
-      components: {
-        tabs: CodeTabs,
-        tab: CodeTab,
-        terminal: Terminal,
-        steps: Steps,
-        step: Step,
-        figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
-          // React might pass "" or true for a boolean attribute. We just need to check if it's explicitly undefined.
-          if (isPrettyCode === undefined && !('data-rehype-pretty-code-figure' in props)) {
-            return <figure {...props}>{children}</figure>;
-          }
-          return <CodeBlockWrapper {...props} data-rehype-pretty-code-figure={isPrettyCode}>{children}</CodeBlockWrapper>;
-        },
-      },
-    } as any)
-    .process(content);
 
   return (
     <article className="prose prose-blue max-w-none dark:prose-invert">
-      {file.result}
+      <MDXRemote 
+        source={content} 
+        components={components}
+        options={{ mdxOptions }}
+      />
     </article>
   );
 }

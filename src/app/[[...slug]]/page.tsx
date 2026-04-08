@@ -1,8 +1,9 @@
-import { getDocContent } from '@/lib/github';
+import { getDocContent, isFutureDate } from '@/lib/github';
 import matter from 'gray-matter';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import RightSidebar from '@/components/RightSidebar';
 import UpdateBanner from '@/components/UpdateBanner';
+import NavigationGrid from '@/components/NavigationGrid';
 import { notFound } from 'next/navigation';
 
 // Forzar renderizado dinámico para que siempre verifique el SHA del árbol
@@ -31,15 +32,10 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Publicación programada: ocultar si la fecha es futura
-  if (frontmatter.date) {
-    const now = new Date();
-    const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    const [year, month, day] = String(frontmatter.date).split('-').map(Number);
-    const postUTC = Date.UTC(year, month - 1, day);
-    if (postUTC > todayUTC) {
-      return notFound();
-    }
+  if (isFutureDate(frontmatter.date)) {
+    return notFound();
   }
+
 
   // Computar el slug string para el banner
   const slugStr = slug ? slug.join('/') : 'index';
@@ -58,6 +54,9 @@ export default async function Page({ params }: PageProps) {
           </h1>
         )}
         <MarkdownRenderer content={content} />
+        {docResult.children && docResult.children.length > 0 && (
+          <NavigationGrid items={docResult.children} />
+        )}
       </div>
       <RightSidebar />
     </div>

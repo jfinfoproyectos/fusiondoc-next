@@ -1,9 +1,8 @@
 export const GITHUB_CONFIG = {
-  // Configuración por defecto: leer desde el propio repositorio (documentacion) como ejemplo.
-  // El usuario puede modificar esto con su respectivo repositorio público de GitHub.
-  owner: 'jfinfotest', // Usuario de github
-  repo: 'prueba_doc', // Repositorio de github
-  branch: 'main', // o 'master'
-  docsPath: 'docs', // Ruta base donde están los archivos Markdown (comúnmente 'docs' o el root '')
+  // Configuración de GitHub para modo Remoto
+  // Estas variables se leen prioritariamente de .env.local
+  owner: process.env.GITHUB_OWNER || 'jfinfotest',
+  repo: process.env.GITHUB_REPO || 'prueba_doc',
+  branch: process.env.GITHUB_BRANCH || 'main',
+  docsPath: process.env.GITHUB_DOCS_PATH || 'docs',
 };
-
