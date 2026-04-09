@@ -8,9 +8,16 @@ import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const robotoHeading = Roboto({subsets:['latin'],variable:'--font-heading'});
+const robotoHeading = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-heading'
+});
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-sans"
+});
 
 export const metadata: Metadata = {
   title: "Fusiondoc Next",
@@ -23,9 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={cn(robotoHeading.variable)} suppressHydrationWarning>
+    <html lang="es" className={cn(inter.variable, robotoHeading.variable)} suppressHydrationWarning>
       <body
-        className={`${inter.className} antialiased min-h-screen bg-background text-foreground flex flex-col`}
+        className="antialiased min-h-screen bg-background text-foreground flex flex-col font-sans"
       >
         <ThemeProvider
           attribute="class"
@@ -36,9 +43,9 @@ export default function RootLayout({
           <div className="flex flex-col min-h-screen">
             <Header />
             <TopicsBar />
-            <div className="flex flex-1 max-w-[1600px] mx-auto w-full relative">
+            <div className="flex flex-1 max-w-[1700px] mx-auto w-full relative">
               <Sidebar />
-              <main className="flex-1 w-full min-w-0 p-6 md:p-8">
+              <main className="flex-1 w-full min-w-0 py-4 md:py-6 px-0">
                 {children}
               </main>
             </div>

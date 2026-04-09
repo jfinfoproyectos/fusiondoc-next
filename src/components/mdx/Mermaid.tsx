@@ -1,190 +1,149 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-// Mermaid will be loaded lazily on the client to avoid SSR overhead
-import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertCircle, Maximize2 } from 'lucide-react';
+import React, { useEffect, useRef, useState, useId } from "react";
+import mermaid from "mermaid";
+import { useTheme } from "next-themes";
+import { Loader2, Maximize2, ZoomIn, ZoomOut, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MermaidProps {
-  chart: string;
-  id?: string;
+  code?: string;
+  children?: string;
   title?: string;
+  className?: string;
 }
 
-// Singleton to ensure mermaid is initialized only once
-let mermaidPromise: Promise<any> | null = null;
-
-const getMermaid = async () => {
-  if (typeof window === 'undefined') return null;
-  if (!mermaidPromise) {
-    mermaidPromise = (async () => {
-      const m = await import('mermaid');
-      const mermaid = m.default ?? m;
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: 'dark',
-        securityLevel: 'loose',
-        fontFamily: 'Inter, sans-serif',
-        themeVariables: {
-          primaryColor: '#6366f1',
-          primaryTextColor: '#fff',
-          primaryBorderColor: '#6366f1',
-          lineColor: '#4f46e5',
-          secondaryColor: '#1e293b',
-          tertiaryColor: '#0f172a',
-        },
-      });
-      return mermaid;
-    })();
-  }
-  return mermaidPromise;
-};
-
-export function Mermaid({ chart, id = 'mermaid-chart', title }: MermaidProps) {
-  const [svg, setSvg] = useState<string>('');
+export function Mermaid({ code, children, title, className }: MermaidProps) {
+  const { theme, resolvedTheme } = useTheme();
+  const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isRendering, setIsRendering] = useState(true);
+  const [zoom, setZoom] = useState(1);
+  const id = useId().replace(/:/g, ""); // Remove colons for valid CSS/DOM ID
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const mermaidCode = (code || children || "").trim();
+
+  const renderDiagram = async () => {
+    if (!mermaidCode) return;
+    
+    setIsRendering(true);
+    setError(null);
+
+    try {
+      const isDark = resolvedTheme === "dark";
+      
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: isDark ? "dark" : "default",
+        securityLevel: "loose",
+        fontFamily: "var(--font-sans)",
+        themeVariables: {
+          fontSize: "14px",
+          primaryColor: isDark ? "#3b82f6" : "#2563eb",
+          // Add more styling variables here to match your premium aesthetic
+        }
+      });
+
+      const { svg: renderedSvg } = await mermaid.render(`mermaid-${id}`, mermaidCode);
+      setSvg(renderedSvg);
+    } catch (err: any) {
+      console.error("Mermaid Render Error:", err);
+      setError("Error al renderizar el diagrama. Verifica la sintaxis.");
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
   useEffect(() => {
-    let isMounted = true;
+    renderDiagram();
+  }, [mermaidCode, resolvedTheme]);
 
-    const renderChart = async () => {
-      try {
-        if (!chart || chart.trim() === '') {
-          setIsLoading(false);
-          return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        const mermaidModule = await import('mermaid');
-        const mermaid = mermaidModule.default ?? mermaidModule;
-
-        if (!isMounted) return;
-
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: 'dark',
-          securityLevel: 'loose',
-          fontFamily: 'Inter, sans-serif',
-        });
-
-        const safeId = `m${Math.random().toString(36).substring(2, 11)}`;
-        const cleanChart = chart.replace(/\\n/g, '\n').trim();
-        
-        console.log('[Mermaid] Rendering ID:', safeId);
-
-        // mermaid.render returns a promise that resolves to { svg }
-        const { svg: renderedSvg } = await mermaid.render(safeId, cleanChart);
-        
-        if (isMounted) {
-          if (renderedSvg) {
-            setSvg(renderedSvg);
-          } else {
-            throw new Error('Diagrama vacío');
-          }
-        }
-      } catch (err: any) {
-        console.error('[Mermaid] Render error:', err);
-        if (isMounted) {
-          setError(err?.message || 'Error de sintaxis');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    renderChart();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [chart]);
-
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 3));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  const handleResetZoom = () => setZoom(1);
 
   return (
-    <div className="relative my-8 group">
-      {title && (
-        <div className="mb-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 w-fit text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">
-          {title}
+    <div className={cn(
+      "my-10 group relative rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl overflow-hidden min-h-[150px]",
+      className
+    )}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+             <RefreshCw className={cn("w-4 h-4", isRendering && "animate-spin")} />
+          </div>
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            {title || "Diagrama Mermaid"}
+          </span>
         </div>
-      )}
-      
-      <div 
-        className="relative overflow-hidden rounded-3xl border border-white/10 bg-black/20 backdrop-blur-sm p-8 min-h-[150px] flex items-center justify-center transition-all group-hover:border-primary/30"
-      >
+        
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            onClick={handleZoomOut}
+            className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground transition-colors"
+            title="Alejar"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={handleResetZoom}
+            className="text-[10px] font-bold text-muted-foreground hover:text-white px-2 uppercase tracking-tighter"
+          >
+            {Math.round(zoom * 100)}%
+          </button>
+          <button 
+            onClick={handleZoomIn}
+            className="p-1.5 rounded-lg hover:bg-white/10 text-muted-foreground transition-colors"
+            title="Acercar"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="relative p-8 flex flex-col items-center justify-center bg-dot-pattern min-h-[300px] overflow-auto">
         <AnimatePresence mode="wait">
-          {isLoading ? (
+          {isRendering ? (
             <motion.div 
               key="loading"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3 text-muted-foreground/40"
+              className="flex flex-col items-center gap-4 text-muted-foreground"
             >
-              <Loader2 className="w-8 h-8 animate-spin" />
-              <span className="text-[10px] uppercase tracking-tighter font-bold">Generando Diagrama...</span>
+              <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
+              <p className="text-xs font-medium animate-pulse">Generando diagrama...</p>
             </motion.div>
           ) : error ? (
             <motion.div 
               key="error"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3 text-red-400 bg-red-400/5 p-6 rounded-2xl border border-red-400/10 text-center"
+              className="text-center p-8 bg-red-500/10 rounded-2xl border border-red-500/20"
             >
-              <AlertCircle className="w-6 h-6" />
-              <p className="text-xs font-medium">{error}</p>
-              <pre className="text-[9px] opacity-40 font-mono mt-2 bg-black/40 p-2 rounded max-w-md overflow-auto">{chart.substring(0, 50)}...</pre>
+              <p className="text-sm text-red-400 font-medium mb-2">{error}</p>
+              <pre className="text-[10px] text-red-300 opacity-70 p-4 rounded-xl bg-black/20 overflow-auto max-w-full">
+                {mermaidCode}
+              </pre>
             </motion.div>
           ) : (
-            <div 
+            <motion.div 
               key="content"
-              className="w-full h-full flex justify-center mermaid-svg-container"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
+              className="w-full h-full flex items-center justify-center transition-transform duration-300"
               dangerouslySetInnerHTML={{ __html: svg }}
             />
           )}
         </AnimatePresence>
       </div>
 
-      {/* Action Overlay */}
-      {!isLoading && !error && svg && (
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button className="p-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-colors">
-            <Maximize2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      <style jsx global>{`
-        .mermaid-svg-container svg {
-          height: auto !important;
-          width: 100% !important;
-          max-width: 1000px !important;
-          filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.15));
-        }
-        .mermaid-svg-container .edgePath .path {
-          stroke: #6366f1 !important;
-          stroke-width: 2px !important;
-        }
-        .mermaid-svg-container .node rect {
-          fill: #1e1b4b !important;
-          stroke: #6366f1 !important;
-          stroke-width: 1.5px !important;
-          rx: 8px !important;
-        }
-        .mermaid-svg-container .label {
-          color: #fff !important;
-          font-family: inherit !important;
-          font-weight: 500 !important;
-        }
-      `}</style>
+      {/* Footer Decoration */}
+      <div className="h-1 w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
     </div>
   );
 }
-
-export default Mermaid;

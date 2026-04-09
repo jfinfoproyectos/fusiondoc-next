@@ -41,8 +41,8 @@ export default async function Page({ params }: PageProps) {
   const slugStr = slug ? slug.join('/') : 'index';
 
   return (
-    <div className="flex w-full xl:max-w-7xl mx-auto">
-      <div className="flex-1 min-w-0 py-8 px-4 md:px-8 max-w-4xl mx-auto">
+    <div className="flex w-full">
+      <div className="flex-1 min-w-0 py-8 px-6 md:px-12 lg:px-16">
         {/* Banner de contenido actualizado (solo si no vino de caché) */}
         {!docResult.fromCache && (
           <UpdateBanner sha={docResult.sha} slug={slugStr} />

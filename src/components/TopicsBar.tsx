@@ -38,11 +38,11 @@ export default function TopicsBar() {
   if (!loading && topics.length === 0) return null;
 
   return (
-    <div className="w-full border-b border-border bg-background h-12 flex items-center px-4 md:px-6 sticky top-16 z-40 overflow-x-auto no-scrollbar scroll-smooth">
-      <div className="flex items-center space-x-1 max-w-[1600px] mx-auto w-full">
+    <div className="w-full border-b border-border bg-background h-10 flex items-center px-4 md:px-6 sticky top-16 z-40 overflow-x-auto no-scrollbar scroll-smooth text-nowrap">
+      <div className="flex items-center space-x-1 max-w-[1700px] mx-auto w-full">
         {loading ? (
            <div className="flex gap-2">
-             {[1,2,3].map(i => <div key={i} className="h-8 w-24 rounded-full bg-muted/40 animate-pulse" />)}
+             {[1,2,3].map(i => <div key={i} className="h-7 w-20 rounded-full bg-muted/40 animate-pulse" />)}
            </div>
         ) : (
           topics.map((topic) => {
@@ -51,13 +51,13 @@ export default function TopicsBar() {
               <Link
                 key={topic.slug}
                 href={`/${topic.slug}`}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-4 py-1 text-xs font-medium rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/20'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent'
                 }`}
               >
-                {topic.icon && <DynamicIcon icon={topic.icon} width="16" height="16" />}
+                {topic.icon && <DynamicIcon icon={topic.icon} width="14" height="14" />}
                 {topic.title}
               </Link>
             );

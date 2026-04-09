@@ -11,11 +11,18 @@ import { ZoomImage } from "./components/mdx/ZoomImage";
 import { Video, Audio } from "./components/mdx/Media";
 import { GithubRepo } from "./components/mdx/GithubRepo";
 import { FileTree, Folder, File } from "./components/mdx/FileTree";
-import { BentoGrid, BentoCard, Timeline, TimelineItem } from "./components/mdx/ExtendedComponents";
 import PropertyTable from "./components/mdx/PropertyTable";
 import { Hero } from "./components/mdx/Hero";
-import { Mermaid } from "./components/mdx/Mermaid";
 import { Badge } from "./components/mdx/Badge";
+import { CodeExplainer, CodeExplainerFile, CodeExplainerStep } from "./components/mdx/CodeExplainer";
+import { CodeEmbed } from "./components/mdx/CodeEmbed";
+import { BentoGrid, BentoCard } from "./components/mdx/BentoGrid";
+import { Timeline, TimelineItem } from "./components/mdx/Timeline";
+import { FeatureGlowGrid, FeatureGlowCard } from "./components/mdx/FeatureGlow";
+import { Roadmap, RoadmapItem } from "./components/mdx/Roadmap";
+import { Tooltip } from "./components/mdx/Tooltip";
+import { Kbd } from "./components/mdx/Kbd";
+
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -39,12 +46,23 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     File,
     PropertyTable,
     Hero,
-    Mermaid,
+    Badge,
+    CodeExplainer,
+    CodeExplainerFile,
+    CodeExplainerStep,
+    CodeEmbed,
     BentoGrid,
     BentoCard,
     Timeline,
     TimelineItem,
-    Badge,
+    FeatureGlowGrid,
+    FeatureGlowCard,
+    FeatureGlow: FeatureGlowGrid,
+    Roadmap,
+    RoadmapItem,
+    Tooltip,
+    Kbd,
+
     // Aliases
     icon: MdxIcon,
     Icon: MdxIcon,
@@ -70,13 +88,23 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     PropertyGrid: PropertyTable,
     propGrid: PropertyTable,
     hero: Hero,
-    mermaid: Mermaid,
-    flow: Mermaid,
-    chart: Mermaid,
-    bento: BentoGrid,
+    badge: Badge,
+    explainer: CodeExplainer,
+    explainerfile: CodeExplainerFile,
+    explainerstep: CodeExplainerStep,
+    embed: CodeEmbed,
+    codepen: CodeEmbed,
+    sandbox: CodeEmbed,
+    stackblitz: CodeEmbed,
+    bentogrid: BentoGrid,
     bentocard: BentoCard,
     timeline: Timeline,
     timelineitem: TimelineItem,
-    badge: Badge,
+    featureglow: FeatureGlowGrid,
+    featureglowcard: FeatureGlowCard,
+    roadmap: Roadmap,
+    roadmapitem: RoadmapItem,
+    tooltip: Tooltip,
+    kbd: Kbd,
   };
 }

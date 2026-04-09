@@ -52,7 +52,7 @@ export default function Sidebar() {
   }, [activeTopic]);
 
   return (
-    <aside className="w-64 border-r border-border h-[calc(100vh-7rem)] bg-muted/40 sticky top-28 overflow-hidden hidden md:block">
+    <aside className="w-64 border-r border-border h-[calc(100vh-6.5rem)] bg-muted/40 sticky top-26 overflow-hidden hidden md:block">
       {loading && navItems.length === 0 ? (
         <div className="flex h-full items-center justify-center">
             <Loader2 className="w-5 h-5 animate-spin text-primary/40" />
