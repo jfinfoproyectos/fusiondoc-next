@@ -13,7 +13,7 @@ const stat = promisify(fs.stat);
 // TIPOS
 // ============================================================
 
-type GithubTreeItem = {
+export type GithubTreeItem = {
   path: string;
   mode: string;
   type: string;
@@ -52,11 +52,6 @@ export type DocResult = {
 
 const contentCache = new Map<string, string>();
 
-// Almacena el último SHA conocido del árbol completo del repo.
-// Si el SHA del árbol no cambió, toda la estructura es idéntica.
-let lastTreeSha: string | null = null;
-let cachedNavigation: NavGroup[] | null = null;
-
 // ============================================================
 // FUNCIONES AUXILIARES
 // ============================================================
@@ -83,7 +78,7 @@ export function isFutureDate(dateVal?: string | Date): boolean {
     
     const postUTC = Date.UTC(year, month - 1, day);
     return postUTC > todayUTC;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -197,8 +192,8 @@ export async function getTopics(): Promise<{ title: string; slug: string; order:
               title = frontmatter.title || title;
               order = frontmatter.order ?? order;
               icon = frontmatter.icon;
-            } catch (e) {
-              console.error(`Error reading index.md for topic ${item}:`, e);
+            } catch {
+              console.error(`Error reading index.md for topic ${item}`);
             }
           }
           
@@ -449,7 +444,7 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   let currentDir = "";
 
   if (localBase && fs.existsSync(localBase)) {
-    let targetPath = path.join(localBase, ...slugArray);
+    const targetPath = path.join(localBase, ...slugArray);
     let localFile = targetPath + ".md";
     currentDir = targetPath;
     
@@ -530,7 +525,7 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
             description = data.description || "";
             order = data.order ?? order;
             icon = data.icon;
-            let cleanSlug = [...slugArray];
+            const cleanSlug = [...slugArray];
             if (cleanSlug[cleanSlug.length - 1] === "index") cleanSlug.pop();
             href = `/${[...cleanSlug, item].join("/")}`;
           } else {
@@ -544,7 +539,7 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
           description = data.description || "";
           order = data.order ?? order;
           icon = data.icon;
-          let cleanSlug = [...slugArray];
+          const cleanSlug = [...slugArray];
           if (cleanSlug[cleanSlug.length - 1] === "index") cleanSlug.pop();
           href = `/${[...cleanSlug, item.replace(/\.md$/, "")].join("/")}`;
         }
@@ -640,3 +635,6 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
 
   return docResult;
 }
+
+// Explicit exports for search engine
+export { getGitTree, getFileContent };

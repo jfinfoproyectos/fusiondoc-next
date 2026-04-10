@@ -14,12 +14,13 @@ export function PropertyTable(props: any) {
   // Use let to allow parsing if it's a string
   let items = props.items;
   
-  // Robust check: if MDX passed it as a string instead of an array
   if (typeof items === 'string') {
     try {
-      items = JSON.parse(items);
+      // Use relaxed evaluation to support beautifully formatted multiline objects
+      // even if keys are not strictly quoted like "name": "..."
+      items = new Function("return " + items)();
     } catch (e) {
-      console.error('Error parsing PropertyTable items:', e);
+      console.error('Error parsing PropertyTable items:', items, e);
     }
   }
   
@@ -43,37 +44,37 @@ export function PropertyTable(props: any) {
         <table className="w-full text-left font-sans text-sm border-collapse">
           <thead>
             <tr className="border-b border-white/10 bg-white/[0.03]">
-              <th className="px-8 py-5 font-bold text-foreground uppercase tracking-widest text-[10px]">Propiedad</th>
-              <th className="px-8 py-5 font-bold text-foreground uppercase tracking-widest text-[10px]">Tipo</th>
-              <th className="px-8 py-5 font-bold text-foreground uppercase tracking-widest text-[10px] text-center">Requerido</th>
-              <th className="px-8 py-5 font-bold text-foreground uppercase tracking-widest text-[10px]">Default</th>
-              <th className="px-8 py-5 font-bold text-foreground uppercase tracking-widest text-[10px]">Descripción</th>
+              <th className="px-6 py-3 font-bold text-foreground uppercase tracking-widest text-[10px]">Propiedad</th>
+              <th className="px-6 py-3 font-bold text-foreground uppercase tracking-widest text-[10px]">Tipo</th>
+              <th className="px-6 py-3 font-bold text-foreground uppercase tracking-widest text-[10px] text-center">Requerido</th>
+              <th className="px-6 py-3 font-bold text-foreground uppercase tracking-widest text-[10px]">Default</th>
+              <th className="px-6 py-3 font-bold text-foreground uppercase tracking-widest text-[10px]">Descripción</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {items?.map((item: any, i: number) => (
               <tr key={i} className="group hover:bg-white/[0.02] transition-all duration-300">
-                <td className="px-8 py-5">
+                <td className="px-6 py-3">
                   <div className="flex flex-col gap-1">
-                    <span className="font-mono text-primary font-bold text-sm tracking-tight group-hover:translate-x-1 transition-transform">
+                    <span className="font-mono text-primary font-bold text-xs tracking-tight group-hover:translate-x-1 transition-transform">
                       {item.name}
                     </span>
                   </div>
                 </td>
-                <td className="px-8 py-5">
+                <td className="px-6 py-3">
                   <Badge variant={
                     item.type?.toLowerCase().includes('string') ? 'info' : 
                     item.type?.toLowerCase().includes('boolean') ? 'success' : 
                     item.type?.toLowerCase().includes('number') ? 'warning' : 
                     item.type?.toLowerCase().includes('function') ? 'purple' : 'outline'
-                  } className="font-mono text-[10px] px-2 py-0">
+                  } className="font-mono text-[9px] px-2 py-0">
                     {item.type}
                   </Badge>
                 </td>
-                <td className="px-8 py-5 text-center">
+                <td className="px-6 py-3 text-center">
                   {item.required ? (
                     <div className="flex justify-center">
-                      <div className="relative h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                      <div className="relative h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]">
                          <div className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75" />
                       </div>
                     </div>
@@ -81,13 +82,13 @@ export function PropertyTable(props: any) {
                     <span className="text-muted-foreground/30 text-[10px] uppercase font-bold">-</span>
                   )}
                 </td>
-                <td className="px-8 py-5">
-                  <code className="text-[11px] text-muted-foreground font-mono bg-white/5 border border-white/5 px-2 py-0.5 rounded-md">
+                <td className="px-6 py-3">
+                  <code className="text-[10px] text-muted-foreground font-mono bg-white/5 border border-white/5 px-2 py-0.5 rounded-md">
                     {item.default || 'none'}
                   </code>
                 </td>
-                <td className="px-8 py-5 max-w-sm">
-                  <p className="text-muted-foreground/90 leading-relaxed text-xs">
+                <td className="px-6 py-3 max-w-sm">
+                  <p className="text-muted-foreground/90 leading-relaxed text-[11px]">
                     {item.description}
                   </p>
                 </td>

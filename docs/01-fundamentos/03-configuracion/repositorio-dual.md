@@ -32,19 +32,37 @@ Se activa cuando `LOCAL_DOCS_PATH` está comentada o ausente.
 
 ## Cómo Alternar entre Modos
 
-Para cambiar de modo, simplementa edita tu archivo `.env.local`:
+Para conmutar de un modo a otro, simplemente sigue este proceso sobre tu archivo `.env.local`.
 
-**Para activar Modo Remoto:**
-```bash
-# Comenta la línea de la ruta local
-# LOCAL_DOCS_PATH=C:\Users\...
-```
+<Steps>
+  <Step title="Ubicar archivo de configuración">
+    Abre el archivo `.env.local` en la raíz de tu proyecto.
+  </Step>
+  
+  <Step title="Configurar variables">
+    Activa o comenta la clave `LOCAL_DOCS_PATH` dependiendo del entorno que desees utilizar. 
 
-**Para activar Modo Local:**
-```bash
-# Descomenta la línea
-LOCAL_DOCS_PATH=C:\Users\...
-```
+    <CodeTabs>
+      <CodeTab title="💻 Modo Local" icon="lucide:hard-drive">
+        ```env
+        # Descomenta la línea de la ruta local
+        LOCAL_DOCS_PATH=./docs
+        ```
+      </CodeTab>
+      
+      <CodeTab title="☁️ Modo Remoto" icon="lucide:cloud">
+        ```env
+        # Comenta la ruta local para forzar el fetching a GitHub
+        # LOCAL_DOCS_PATH=./docs
+        
+        GITHUB_OWNER=tu-usuario
+        GITHUB_REPO=tu-repositorio
+        GITHUB_BRANCH=main
+        ```
+      </CodeTab>
+    </CodeTabs>
+  </Step>
+</Steps>
 
 > [!IMPORTANT]
 > En **Modo Remoto**, FusionDoc utiliza un sistema de caché por SHA. Si el archivo en GitHub no ha cambiado, se servirá desde la caché de memoria para ahorrar límites de API y mejorar la velocidad.

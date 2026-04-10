@@ -5,6 +5,8 @@ import { getAvailableThemes } from "@/app/actions/themes";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { CodeThemeSelector } from "@/components/CodeThemeSelector";
 import { getCodeTheme } from "@/app/actions/code-themes";
+import { SITE_CONFIG } from '@/config';
+import { Search } from './Search';
 
 export default async function Header() {
   let socialLinks: { name: string; url: string; icon: string }[] = [];
@@ -25,9 +27,13 @@ export default async function Header() {
       <div className="flex items-center w-full max-w-[1700px] mx-auto px-4 md:px-6">
         <div className="flex items-center space-x-4">
           <Link href="/" className="font-bold text-xl text-primary flex items-center gap-2">
-             <svg xmlns="http://www.w3.org/20urn:schemas-microsoft-com:office:office" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-             Fusiondoc Next
+             <DynamicIcon icon={SITE_CONFIG.logo} width="24" height="24" />
+             {SITE_CONFIG.title}
           </Link>
+        </div>
+
+        <div className="flex-1 max-w-sm mx-4 md:mx-8">
+           <Search />
         </div>
         <div className="flex items-center ml-auto gap-4 text-sm font-medium">
           {socialLinks.map((link, i) => {
@@ -45,9 +51,13 @@ export default async function Header() {
               </a>
             );
           })}
-          <ThemeSelector themes={availableThemes} />
-          <CodeThemeSelector currentTheme={currentCodeTheme} />
-          <ModeToggle />
+          <ThemeSelector themes={availableThemes} forcedTheme={SITE_CONFIG.defaultTheme} />
+          {!SITE_CONFIG.defaultCodeTheme && (
+            <CodeThemeSelector currentTheme={currentCodeTheme} />
+          )}
+          {!SITE_CONFIG.defaultAppearance && (
+            <ModeToggle />
+          )}
         </div>
       </div>
     </header>

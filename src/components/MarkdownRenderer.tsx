@@ -1,5 +1,4 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { cookies } from "next/headers";
 import { getCodeTheme } from "@/app/actions/code-themes";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
@@ -22,12 +21,15 @@ import { Badge } from "./mdx/Badge";
 import { CodeExplainer, CodeExplainerFile, CodeExplainerStep } from "./mdx/CodeExplainer";
 import { CodeEmbed } from "./mdx/CodeEmbed";
 import { BentoGrid, BentoCard } from "./mdx/BentoGrid";
-import { Mermaid } from "./mdx/Mermaid";
 import { Timeline, TimelineItem } from "./mdx/Timeline";
 import { FeatureGlowGrid, FeatureGlowCard } from "./mdx/FeatureGlow";
 import { Roadmap, RoadmapItem } from "./mdx/Roadmap";
 import { Tooltip } from "./mdx/Tooltip";
 import { Kbd } from "./mdx/Kbd";
+import { TextReveal } from "./mdx/TextReveal";
+import { AnimatedSVG } from "./mdx/AnimatedSVG";
+import { TimelineFlow } from "./mdx/TimelineFlow";
+import { X6Diagram } from "./mdx/X6Diagram";
 
 
 interface MarkdownRendererProps {
@@ -60,7 +62,6 @@ const components = {
   CodeEmbed,
   BentoGrid,
   BentoCard,
-  Mermaid,
   Timeline,
   TimelineItem,
   FeatureGlowGrid,
@@ -69,6 +70,7 @@ const components = {
   RoadmapItem,
   Tooltip,
   Kbd,
+  X6Diagram,
 
   // Aliases
   icon: MdxIcon,
@@ -107,7 +109,6 @@ const components = {
   stackblitz: CodeEmbed,
   bentogrid: BentoGrid,
   bentocard: BentoCard,
-  mermaid: Mermaid,
   timeline: Timeline,
   timelineitem: TimelineItem,
   FeatureGlow: FeatureGlowGrid,
@@ -122,6 +123,13 @@ const components = {
   tooltip: Tooltip,
 
   kbd: Kbd,
+  TextReveal,
+  AnimatedSVG,
+  TimelineFlow,
+  textreveal: TextReveal,
+  svgdraw: AnimatedSVG,
+  flow: TimelineFlow,
+  X6: X6Diagram,
 
   // Override figure to wrap code blocks
   figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {

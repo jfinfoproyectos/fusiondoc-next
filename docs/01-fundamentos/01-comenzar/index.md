@@ -7,7 +7,14 @@ order: 1
 
 # Comenzar
 
-Esta sección te guiará a través de los conceptos iniciales para empezar a documentar con FusionDoc de manera efectiva.
+Esta sección te guiará a través de los conceptos iniciales para empezar a documentar con **FusionDoc** de manera efectiva.
 
-## En esta categoría
-- [Introducción](./introduccion)
+<BentoGrid className="mt-8 max-w-2xl">
+  <BentoCard
+    title="Introducción"
+    description="Bienvenida y comandos de instalación rápida."
+    icon="lucide:book-open"
+    href="/01-fundamentos/01-comenzar/introduccion"
+  />
+</BentoGrid>
+

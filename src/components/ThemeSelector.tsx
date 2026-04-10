@@ -21,17 +21,18 @@ export interface ThemeInfo {
 
 interface ThemeSelectorProps {
   themes: ThemeInfo[];
+  forcedTheme?: string | null;
 }
 
-export function ThemeSelector({ themes }: ThemeSelectorProps) {
+export function ThemeSelector({ themes, forcedTheme }: ThemeSelectorProps) {
   const [mounted, setMounted] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string>("default");
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem("fusiondoc-theme") || "default";
+    const savedTheme = forcedTheme || localStorage.getItem("fusiondoc-theme") || "default";
     setActiveTheme(savedTheme);
-  }, []);
+  }, [forcedTheme]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -121,6 +122,10 @@ export function ThemeSelector({ themes }: ThemeSelectorProps) {
       </Button>
     );
   }
+
+  // Si hay un tema forzado, no renderizamos el selector en el UI, 
+  // pero los useEffect de arriba ya se encargaron de aplicar el CSS.
+  if (forcedTheme) return null;
 
   return (
     <DropdownMenu>

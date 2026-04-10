@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { SITE_CONFIG } from "@/config";
 
 export async function setCodeTheme(themeId: string) {
   const cookieStore = await cookies();
@@ -15,6 +16,9 @@ export async function setCodeTheme(themeId: string) {
 }
 
 export async function getCodeTheme() {
+  if (SITE_CONFIG.defaultCodeTheme) {
+    return SITE_CONFIG.defaultCodeTheme;
+  }
   const cookieStore = await cookies();
   return cookieStore.get("code-theme")?.value || "github-dark";
 }

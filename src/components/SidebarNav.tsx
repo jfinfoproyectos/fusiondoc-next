@@ -116,7 +116,7 @@ export default function SidebarNav({ navItems }: { navItems: NavGroup[] }) {
                       <ChevronDown size={14} className="text-muted-foreground/40 shrink-0" />
                     </motion.div>
                     {group.icon && <DynamicIcon icon={group.icon} width="16" height="16" className="text-muted-foreground/70 shrink-0" />}
-                    <span className="truncate tracking-tight">{group.title}</span>
+                    <span className="tracking-tight">{group.title}</span>
                   </span>
                 </button>
                 {group.indexHref && (
@@ -154,7 +154,7 @@ export default function SidebarNav({ navItems }: { navItems: NavGroup[] }) {
                             }`}
                           >
                             {link.icon && <DynamicIcon icon={link.icon} width="14" height="14" className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/40 group-hover/link:text-foreground/60")} />}
-                            <span className="truncate tracking-tight">{link.title}</span>
+                            <span className="tracking-tight leading-tight">{link.title}</span>
                           </Link>
                         </li>
                       );

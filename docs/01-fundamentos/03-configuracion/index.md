@@ -1,10 +1,16 @@
 ---
 title: Configuración
-description: Personaliza tu proyecto FusionDoc.
+description: Guía completa para personalizar y desplegar tu proyecto FusionDoc.
 order: 4
-icon: 'lucide:file-text'
+icon: 'lucide:settings'
 ---
 
-# Configuración
+# Configuración del Sistema
 
-En esta sección aprenderás a configurar los aspectos fundamentales de tu proyecto, incluyendo el **Repositorio Dual** (uso de archivos locales vs remotos), variables de entorno y temas personalizados.
+FusionDoc ofrece un alto grado de flexibilidad mediante variables de entorno y sistemas dinámicos para adaptarse tanto a flujos de desarrollo local como a despliegues en la nube.
+
+En esta sección encontrarás:
+
+- **Variables de Entorno:** Todas las claves necesarias para conectar GitHub y configurar el sitio.
+- **Repositorio Dual:** Cómo alternar entre archivos locales y la API remota de GitHub.
+- **Temas Visuales:** Guía para crear y aplicar esquemas de colores personalizados.

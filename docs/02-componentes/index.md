@@ -2,7 +2,7 @@
 title: Componentes
 description: Biblioteca de componentes interactivos y visuales de FusionDoc categorizados.
 order: 2
-icon: Boxes
+icon: cuida:chart-column-outline
 ---
 
 # Biblioteca de Componentes
@@ -46,8 +46,9 @@ Herramientas para documentación técnica y de desarrollo.
 - **[Bloques de Código](./03-codigo-y-datos/bloques-codigo)**: Resaltado de sintaxis avanzado y pestañas.
 - **[Terminal](./03-codigo-y-datos/terminal)**: Simulador de línea de comandos interactivo.
 - **[Code Explainer](./03-codigo-y-datos/explicador-codigo)**: Tutoriales de código línea por línea.
-- **[Code Embed](./03-codigo-y-datos/embebidos)**: Integración con Sandboxes externos.
-- **[Property Table](./03-codigo-y-datos/tabla-de-propiedades)**: Tablas de tipos y parámetros.
+- [Code Embed](./03-codigo-y-datos/embebidos): Integración con Sandboxes externos.
+- [Calendar](./03-codigo-y-datos/calendario): Gestión de eventos y cronogramas.
+- [Property Table](./03-codigo-y-datos/tabla-de-propiedades): Tablas de tipos y parámetros.
 
 ## 👁️ Visualización
 Componentes para mostrar assets y estructuras.
