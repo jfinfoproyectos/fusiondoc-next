@@ -340,3 +340,24 @@
 .prose :not(pre) > code::after {
   content: none !important;
 }
+
+/* ─── Responsive visibility helpers ──────────────────────────────────────── */
+/* Show only on mobile (< 768px) */
+.mobile-only {
+  display: flex !important;
+}
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Show only on desktop (≥ 768px) */
+.desktop-only {
+  display: none !important;
+}
+@media (min-width: 768px) {
+  .desktop-only {
+    display: flex !important;
+  }
+}

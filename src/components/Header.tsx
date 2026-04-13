@@ -8,6 +8,8 @@ import { getCodeTheme } from "@/app/actions/code-themes";
 import { SITE_CONFIG } from '@/config';
 import { Search } from './Search';
 import VersionSelector from './VersionSelector';
+import MobileNav from './MobileNav';
+import MobileConfig from './MobileConfig';
 
 export default async function Header() {
   let socialLinks: { name: string; url: string; icon: string }[] = [];
@@ -25,21 +27,31 @@ export default async function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background h-16 flex items-center">
-      <div className="flex items-center w-full max-w-[1700px] mx-auto px-4 md:px-6">
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="font-bold text-xl text-primary flex items-center gap-2">
-             <DynamicIcon icon={SITE_CONFIG.logo} width="24" height="24" />
-             {SITE_CONFIG.title}
+      <div className="flex items-center w-full max-w-[1700px] mx-auto px-4 md:px-6 gap-2 md:gap-4">
+        {/* Left: Menu burger (mobile only) + Logo + Version */}
+        <div className="flex items-center">
+          {/* Hamburger: visible < md, hidden >= md */}
+          <div className="mobile-only items-center">
+            <MobileNav />
+          </div>
+          <Link href="/" className="font-bold text-lg md:text-xl text-primary flex items-center gap-2 shrink-0">
+             <DynamicIcon icon={SITE_CONFIG.logo} width="22" height="22" />
+             <span className="hidden sm:inline-block">{SITE_CONFIG.title}</span>
           </Link>
-          <VersionSelector />
+          <div className="hidden md:block ml-4">
+            <VersionSelector />
+          </div>
         </div>
 
-        <div className="flex-1 max-w-sm mx-4 md:mx-8">
+        {/* Center: Search */}
+        <div className="flex-1 max-w-sm mx-2 md:mx-4">
            <Search />
         </div>
-        <div className="flex items-center ml-auto gap-4 text-sm font-medium">
-          {socialLinks.map((link, i) => {
-            return (
+
+        {/* Right: Social links + Config buttons */}
+        <div className="flex items-center ml-auto gap-2 md:gap-4">
+          <div className="hidden lg:flex items-center gap-4">
+            {socialLinks.map((link, i) => (
               <a 
                 key={i} 
                 href={link.url} 
@@ -48,18 +60,28 @@ export default async function Header() {
                 className="text-muted-foreground hover:text-foreground transition-colors p-1"
                 title={link.name}
               >
-                <DynamicIcon icon={link.icon} width="20" height="20" />
-                <span className="sr-only">{link.name}</span>
+                <DynamicIcon icon={link.icon} width="18" height="18" />
               </a>
-            );
-          })}
-          <ThemeSelector themes={availableThemes} forcedTheme={SITE_CONFIG.defaultTheme} />
-          {!SITE_CONFIG.defaultCodeTheme && (
-            <CodeThemeSelector currentTheme={currentCodeTheme} />
-          )}
-          {!SITE_CONFIG.defaultAppearance && (
-            <ModeToggle />
-          )}
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Unified config: mobile only (< md) */}
+            <div className="mobile-only items-center">
+              <MobileConfig themes={availableThemes} currentCodeTheme={currentCodeTheme} />
+            </div>
+            
+            {/* Individual selectors: desktop only (>= md) */}
+            <div className="desktop-only items-center gap-2">
+              <ThemeSelector themes={availableThemes} forcedTheme={SITE_CONFIG.defaultTheme} />
+              {!SITE_CONFIG.defaultCodeTheme && (
+                <CodeThemeSelector currentTheme={currentCodeTheme} />
+              )}
+              {!SITE_CONFIG.defaultAppearance && (
+                <ModeToggle />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </header>

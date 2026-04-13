@@ -42,20 +42,22 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="flex w-full">
-      <div className="flex-1 min-w-0 py-8 px-6 md:px-12 lg:px-16">
+      <div className="flex-1 min-w-0 py-4 md:py-8 px-4 sm:px-6 md:px-12 lg:px-16">
         {/* Banner de contenido actualizado (solo si no vino de caché) */}
         {!docResult.fromCache && (
           <UpdateBanner sha={docResult.sha} slug={slugStr} />
         )}
 
         {frontmatter.title && (
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-8">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground mb-6 md:mb-8">
             {frontmatter.title}
           </h1>
         )}
         <MarkdownRenderer content={content} />
         {docResult.children && docResult.children.length > 0 && (
-          <NavigationGrid items={docResult.children} />
+          <div className="mt-8 md:mt-12">
+            <NavigationGrid items={docResult.children} />
+          </div>
         )}
       </div>
       <RightSidebar />
