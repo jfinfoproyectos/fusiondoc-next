@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search as SearchIcon, X, FileText, Command, CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
+import { getEffectiveVersion } from '@/lib/version-utils';
 
 export function Search() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,8 @@ export function Search() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
+  const pathname = usePathname();
+  const activeVersion = getEffectiveVersion(pathname);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const toggleSearch = useCallback(() => {
@@ -45,7 +48,8 @@ export function Search() {
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const url = `/api/search?q=${encodeURIComponent(query)}${activeVersion ? `&version=${activeVersion}` : ''}`;
+        const res = await fetch(url);
         const data = await res.json();
         setResults(data.results || []);
         setSelectedIndex(0);
@@ -83,7 +87,7 @@ export function Search() {
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground border border-border rounded-md hover:border-primary/50 hover:bg-accent/50 transition-all group w-full max-w-[240px]"
       >
         <SearchIcon className="w-4 h-4" />
-        <span className="flex-1 text-left">Buscar documentación...</span>
+        <span className="flex-1 text-left">Buscar</span>
         <kbd className="hidden md:flex flex-row items-center gap-1 bg-muted px-1.5 py-0.5 rounded text-[10px] font-mono border border-border">
           <Command className="w-2.5 h-2.5" /> K
         </kbd>
@@ -153,6 +157,11 @@ export function Search() {
                             <span className="text-[10px] px-1.5 py-0.5 bg-muted border border-border rounded text-muted-foreground font-mono">
                               {result.topic}
                             </span>
+                            {result.version && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 border border-primary/20 rounded text-primary font-mono">
+                                {result.version}
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                             {result.content}

@@ -1,5 +1,6 @@
 import { create, insert, search, type AnyOrama } from '@orama/orama';
-import { getGitTree, getFileContent, getTopics, type GithubTreeItem } from './github'; // Fixed exports
+import { getGitTree, getFileContent, getTopics, type GithubTreeItem } from './github';
+import { GITHUB_CONFIG, VersionConfig } from '@/config';
 import matter from 'gray-matter';
 import fs from 'fs';
 import path from 'path';
@@ -18,6 +19,7 @@ export interface SearchResult {
   content: string;
   url: string;
   topic: string;
+  version?: string;
 }
 
 /**
@@ -53,6 +55,7 @@ export async function getOrBuildSearchIndex() {
       content: 'string',
       topic: 'string',
       url: 'string',
+      version: 'string',
     },
   });
 
@@ -85,14 +88,28 @@ async function indexLocalDocs(root: string) {
         if (frontmatter.draft) continue;
 
         const relPath = path.relative(root, fullPath).replace(/\\/g, '/');
-        const topic = relPath.split('/')[0];
-        const slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+        const parts = relPath.split('/');
+        
+        let version = "";
+        let topic = "";
+        let slug = "";
+
+        const versions = GITHUB_CONFIG.versions;
+        if (versions.some((v: VersionConfig) => v.id === parts[0])) {
+          version = parts[0];
+          topic = parts[1] || "";
+          slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+        } else {
+          topic = parts[0];
+          slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+        }
         
         await insert(oramaDb!, {
           title: frontmatter.title || item.replace(/\.md$/, ''),
           content: stripMdx(content),
           topic: topic.charAt(0).toUpperCase() + topic.slice(1).replace(/-/g, ' '),
           url: `/${slug}`,
+          version: version,
         });
       }
     }
@@ -116,23 +133,38 @@ async function indexRemoteDocs() {
     const { data: frontmatter, content } = matter(rawContent.content);
     if (frontmatter.draft) continue;
 
-    const relPath = file.path.split('/').slice(1).join('/'); // Remove 'docs/' prefix usually?
-    // Actually, github.ts uses GITHUB_CONFIG.docsPath
-    const topic = relPath.split('/')[0];
-    const slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+    const docsPath = process.env.GITHUB_DOCS_PATH || 'docs';
+    const relPath = file.path.replace(new RegExp(`^${docsPath}/`), '');
+    const parts = relPath.split('/');
+    
+    let version = "";
+    let topic = "";
+    let slug = "";
+
+    const versions = GITHUB_CONFIG.versions;
+    if (versions.some((v: VersionConfig) => v.id === parts[0])) {
+      version = parts[0];
+      topic = parts[1] || "";
+      slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+    } else {
+      topic = parts[0];
+      slug = relPath.replace(/\.md$/, '').replace(/\/index$/, '');
+    }
 
     await insert(oramaDb!, {
       title: frontmatter.title || file.path.split('/').pop()?.replace(/\.md$/, '') || '',
       content: stripMdx(content),
       topic: topic.charAt(0).toUpperCase() + topic.slice(1).replace(/-/g, ' '),
       url: `/${slug}`,
+      version: version,
     });
   }
 }
 
-export async function performSearch(query: string) {
+export async function performSearch(query: string, version?: string) {
   const db = await getOrBuildSearchIndex();
-  const results = await search(db, {
+  
+  const searchParams: any = {
     term: query,
     properties: ['title', 'content', 'topic'],
     boost: {
@@ -140,7 +172,15 @@ export async function performSearch(query: string) {
       topic: 1.2,
     },
     limit: 10,
-  });
+  };
+
+  if (version) {
+    searchParams.where = {
+      version: version,
+    };
+  }
+
+  const results = await search(db, searchParams);
 
   return results.hits.map((hit: any) => hit.document as SearchResult);
 }

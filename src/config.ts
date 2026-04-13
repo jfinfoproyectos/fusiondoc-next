@@ -14,6 +14,12 @@ export const SITE_CONFIG = {
   defaultAppearance: process.env.DEFAULT_APPEARANCE || null,
 };
 
+export interface VersionConfig {
+  id: string;
+  name?: string;
+  description?: string;
+}
+
 export const GITHUB_CONFIG = {
   // Configuración de GitHub para modo Remoto
   // Estas variables se leen prioritariamente de .env.local
@@ -21,4 +27,30 @@ export const GITHUB_CONFIG = {
   repo: process.env.GITHUB_REPO || 'prueba_doc',
   branch: process.env.GITHUB_BRANCH || 'main',
   docsPath: process.env.GITHUB_DOCS_PATH || 'docs',
+  versions: (() => {
+    try {
+      const versionsEnv = process.env.NEXT_PUBLIC_GITHUB_VERSIONS;
+      if (!versionsEnv) return [];
+      
+      // Intentar parsear como JSON para configuración avanzada
+      if (versionsEnv.trim().startsWith('[') || versionsEnv.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(versionsEnv);
+          if (Array.isArray(parsed)) {
+            return parsed.map((v: any) => {
+              if (typeof v === 'string') return { id: v };
+              return v as VersionConfig;
+            });
+          }
+        } catch (e) {
+          console.error("Error parsing GITHUB_VERSIONS JSON:", e);
+        }
+      }
+      
+      // Fallback a lista separada por comas
+      return versionsEnv.split(',').filter(Boolean).map(v => ({ id: v.trim() }));
+    } catch {
+      return [];
+    }
+  })() as VersionConfig[],
 };

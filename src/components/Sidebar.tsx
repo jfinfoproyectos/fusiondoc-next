@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import SidebarNav from './SidebarNav';
 import { NavGroup } from '@/lib/github';
 import { Loader2 } from 'lucide-react';
+import { getEffectiveVersion, getTopicFromPath } from '@/lib/version-utils';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -12,14 +13,8 @@ export default function Sidebar() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Extract topic from the first part of the slug in the URL
-  // We exclude common landing pages if any
-  const getActiveTopic = () => {
-     const parts = pathname.split('/').filter(Boolean);
-     return parts.length > 0 ? parts[0] : undefined;
-  };
-
-  const activeTopic = getActiveTopic();
+  const activeVersion = getEffectiveVersion(pathname);
+  const activeTopic = getTopicFromPath(pathname);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +28,8 @@ export default function Sidebar() {
 
       setLoading(true);
       try {
-        const res = await fetch(`/api/nav?topic=${activeTopic}`);
+        const url = `/api/nav?topic=${activeTopic || ''}${activeVersion ? `&version=${activeVersion}` : ''}`;
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         if (isMounted) {
@@ -49,7 +45,7 @@ export default function Sidebar() {
 
     loadNavigation();
     return () => { isMounted = false; };
-  }, [activeTopic]);
+  }, [activeTopic, activeVersion]);
 
   return (
     <aside className="w-64 border-r border-border h-[calc(100vh-104px-var(--footer-height))] bg-muted/40 sticky top-[104px] overflow-hidden hidden md:block">
@@ -59,7 +55,7 @@ export default function Sidebar() {
         </div>
       ) : error ? (
         <div className="p-4 text-xs text-red-500/60 bg-red-500/5 m-4 rounded-xl border border-red-500/10">
-          Error al cargar navegación de {activeTopic}.
+          Error al cargar navegación de {activeTopic || 'general'}.
         </div>
       ) : (
         <SidebarNav navItems={navItems} />

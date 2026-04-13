@@ -169,10 +169,18 @@ async function getFileContent(file: GithubTreeItem): Promise<{ content: string; 
 // TOPICS (ROOT FOLDERS)
 // ============================================================
 
-export async function getTopics(): Promise<{ title: string; slug: string; order: number; icon?: string }[]> {
-  const localPath = process.env.LOCAL_DOCS_PATH;
-  if (localPath && fs.existsSync(localPath)) {
+export async function getTopics(version?: string): Promise<{ title: string; slug: string; order: number; icon?: string }[]> {
+  const localBase = process.env.LOCAL_DOCS_PATH;
+  
+  // Si hay versiones y no se especificó una, podríamos tomar la primera por defecto
+  // Pero lo ideal es que quien lo llame sepa qué versión quiere.
+  const effectiveVersion = version || (GITHUB_CONFIG.versions.length > 0 ? GITHUB_CONFIG.versions[0].id : undefined);
+  
+  if (localBase && fs.existsSync(localBase)) {
     try {
+      const localPath = effectiveVersion ? path.join(localBase, effectiveVersion) : localBase;
+      if (!fs.existsSync(localPath)) return [];
+
       const items = await readdir(localPath);
       const topics: { title: string; slug: string; order: number; icon?: string }[] = [];
       for (const item of items) {
@@ -211,50 +219,50 @@ export async function getTopics(): Promise<{ title: string; slug: string; order:
     }
   }
 
-  // GitHub Fallback (simplified - get root folders)
+  // GitHub Fallback
   const treeData = await getGitTree();
   if (!treeData) return [];
 
-  const rootFoldersMap = new Map<string, {title: string, order: number, icon?: string}>();
+  const effectiveDocsPath = effectiveVersion ? `${GITHUB_CONFIG.docsPath}/${effectiveVersion}` : GITHUB_CONFIG.docsPath;
+  const rootFoldersMap = new Map<string, {title: string; order: number; icon?: string}>();
   
-  // First, find all index.md in root subfolders to get titles
-  const rootIndexFiles = treeData.tree.filter(item => 
-    item.type === 'blob' && 
-    item.path.startsWith(GITHUB_CONFIG.docsPath + '/') && 
-    item.path.split('/').length === (GITHUB_CONFIG.docsPath.split('/').filter(Boolean).length + 2) &&
-    item.path.endsWith('/index.md')
+  // Find all directories at the root of the effective docs path
+  const rootDirs = treeData.tree.filter(item => 
+    item.type === 'tree' && 
+    item.path.startsWith(effectiveDocsPath + '/') && 
+    item.path.replace(effectiveDocsPath + '/', '').split('/').length === 1
   );
 
-  for (const file of rootIndexFiles) {
-    const slug = file.path.split('/').slice(-2, -1)[0];
-    const contentData = await getFileContent(file);
-    if (contentData) {
-        const { data: frontmatter } = matter(contentData.content);
-        rootFoldersMap.set(slug, {
-            title: frontmatter.title || slug.replace(/^\d+-/, "").replace(/-/g, " "),
-            order: frontmatter.order ?? 99,
-            icon: frontmatter.icon
-        });
+  for (const dir of rootDirs) {
+    const slug = dir.path.split('/').pop() || "";
+    if (!slug) continue;
+
+    let title = slug.replace(/^\d+-/, "").replace(/-/g, " ");
+    let order = 99;
+    let icon: string | undefined = undefined;
+
+    // Check if this directory has an index.md to get better metadata
+    const indexPath = `${dir.path}/index.md`;
+    const indexFile = treeData.tree.find(f => f.path === indexPath);
+    if (indexFile) {
+      const res = await getFileContent(indexFile);
+      if (res) {
+        const { data } = matter(res.content);
+        title = data.title || title;
+        order = data.order ?? order;
+        icon = data.icon;
+      }
     }
+
+    rootFoldersMap.set(slug, {
+      title: title.charAt(0).toUpperCase() + title.slice(1),
+      order,
+      icon
+    });
   }
 
-  // Ensure all root folders are included even if no index.md
-  treeData.tree.forEach(item => {
-    if (item.type === 'tree' && item.path.startsWith(GITHUB_CONFIG.docsPath + '/')) {
-        const relPath = item.path.replace(GITHUB_CONFIG.docsPath + '/', '');
-        if (!relPath.includes('/')) {
-            if (!rootFoldersMap.has(relPath)) {
-                rootFoldersMap.set(relPath, {
-                    title: relPath.replace(/^\d+-/, "").replace(/-/g, " "),
-                    order: 99
-                });
-            }
-        }
-    }
-  });
-
   const topicsList = Array.from(rootFoldersMap.entries()).map(([slug, data]) => ({
-    title: data.title.charAt(0).toUpperCase() + data.title.slice(1),
+    title: data.title,
     slug,
     order: data.order,
     icon: data.icon
@@ -267,13 +275,16 @@ export async function getTopics(): Promise<{ title: string; slug: string; order:
 // NAVEGACIÓN (SIDEBAR)
 // ============================================================
 
-export const getNavigation = cache(async function(activeTopic?: string): Promise<NavGroup[]> {
-  const localPath = process.env.LOCAL_DOCS_PATH;
-  if (localPath && fs.existsSync(localPath)) {
+export const getNavigation = cache(async function(activeTopic?: string, version?: string): Promise<NavGroup[]> {
+  const localBase = process.env.LOCAL_DOCS_PATH;
+  const effectiveVersion = version || (GITHUB_CONFIG.versions.length > 0 ? GITHUB_CONFIG.versions[0].id : undefined);
+  
+  if (localBase && fs.existsSync(localBase)) {
     try {
       const groupsMap = new Map<string, { links: NavItem[]; indexHref?: string; icon?: string }>();
       const groupOrderMap = new Map<string, number>();
 
+      const localPath = effectiveVersion ? path.join(localBase, effectiveVersion) : localBase;
       const docRoot = activeTopic ? path.join(localPath, activeTopic) : localPath;
       if (!fs.existsSync(docRoot)) return [];
 
@@ -295,11 +306,12 @@ export const getNavigation = cache(async function(activeTopic?: string): Promise
             if (frontmatter.draft === true) continue;
             if (isFutureDate(frontmatter.date)) continue;
 
+            const versionPrefix = effectiveVersion ? `${effectiveVersion}/` : "";
             const topicBase = activeTopic ? `${activeTopic}/` : "";
             let slugPath = relativeItem.replace(/\.md$/, "").replace(/\\/g, "/");
             if (slugPath.endsWith("/index")) slugPath = slugPath.replace(/\/index$/, "");
             if (slugPath === "index") slugPath = "";
-            const slug = `${topicBase}${slugPath}`;
+            const slug = `${versionPrefix}${topicBase}${slugPath}`;
             
             const parts = relativeItem.replace(/\\/g, "/").split("/");
             const fileName = parts.pop() || "";
@@ -353,13 +365,15 @@ export const getNavigation = cache(async function(activeTopic?: string): Promise
     }
   }
 
-  // Simplified GitHub Navigation with Topic support
+  // GitHub Navigation with unified parity
   try {
     const treeData = await getGitTree();
     if (!treeData) return [];
 
-    const basePath = activeTopic ? `${GITHUB_CONFIG.docsPath}/${activeTopic}/` : `${GITHUB_CONFIG.docsPath}/`;
+    const effectiveDocsPath = effectiveVersion ? `${GITHUB_CONFIG.docsPath}/${effectiveVersion}` : GITHUB_CONFIG.docsPath;
+    const basePath = activeTopic ? `${effectiveDocsPath}/${activeTopic}/` : `${effectiveDocsPath}/`;
     
+    // Filter all .md files in the subtree of the current topic/path
     const mdFiles = treeData.tree.filter(item => 
       item.type === 'blob' && 
       item.path.startsWith(basePath) && 
@@ -370,19 +384,21 @@ export const getNavigation = cache(async function(activeTopic?: string): Promise
     const groupOrderMap = new Map<string, number>();
 
     const fetchPromises = mdFiles.map(async (file) => {
-      const relPath = file.path.replace(GITHUB_CONFIG.docsPath + '/', '');
-      const slug = relPath.replace(/\.md$/, '');
-      
-      const fileInTopic = file.path.replace(basePath, '');
-      const parts = fileInTopic.split('/');
+      // Relative path within the topic
+      const relPathInTopic = file.path.replace(basePath, '');
+      const parts = relPathInTopic.split('/');
       const fileName = parts.pop() || '';
-      const defaultCategory = parts.length > 0 ? parts[parts.length - 1] : 'General';
+      
+      // Categoría por defecto basada en la primera carpeta después del tópico
+      const defaultCategory = parts.length > 0 ? parts[0] : 'General';
+      
+      // Ignorar index.md en el nivel raíz del tópico (es el landing del tópico)
+      if (fileName === "index.md" && parts.length === 0) return;
 
       const result = await getFileContent(file);
       if (!result) return;
       const { data: frontmatter } = matter(result.content);
-      if (frontmatter.draft === true) return;
-      if (isFutureDate(frontmatter.date)) return;
+      if (frontmatter.draft === true || isFutureDate(frontmatter.date)) return;
 
       const title = frontmatter.title || fileName.replace(/\.md$/, '').replace(/-/g, ' ');
       const category = frontmatter.category || defaultCategory;
@@ -390,16 +406,26 @@ export const getNavigation = cache(async function(activeTopic?: string): Promise
       const catOrder = frontmatter.categoryOrder || 99;
       const icon = frontmatter.icon;
 
+      // URL base: /v1/topic/path/to/slug
+      const versionPrefix = effectiveVersion ? `${effectiveVersion}/` : "";
+      const topicBase = activeTopic ? `${activeTopic}/` : "";
+      let slugPath = relPathInTopic.replace(/\.md$/, "");
+      if (slugPath.endsWith("/index")) slugPath = slugPath.replace(/\/index$/, "");
+      if (slugPath === "index") slugPath = "";
+      const href = `/${versionPrefix}${topicBase}${slugPath}`;
+
       if (!groupsMap.has(category)) {
         groupsMap.set(category, { links: [] });
         groupOrderMap.set(category, catOrder);
       }
 
-      if (fileName === "index") {
-        groupsMap.get(category)!.indexHref = `/${slug}`;
-        if (icon) groupsMap.get(category)!.icon = icon;
+      const group = groupsMap.get(category)!;
+
+      if (fileName === "index.md") {
+        group.indexHref = href;
+        if (icon) group.icon = icon;
       } else {
-        groupsMap.get(category)!.links.push({ title, href: `/${slug}`, order, icon });
+        group.links.push({ title, href, order, icon });
       }
     });
 
@@ -407,24 +433,25 @@ export const getNavigation = cache(async function(activeTopic?: string): Promise
 
     const navGroups: NavGroup[] = [];
     groupsMap.forEach((data, categoryTitle) => {
-      data.links.sort((a, b) => (a.order || 0) - (b.order || 0));
+      data.links.sort((a, b) => (a.order || 99) - (b.order || 99));
       navGroups.push({
         title: categoryTitle.charAt(0).toUpperCase() + categoryTitle.slice(1).replace(/-/g, " ").replace(/^\d+-/, ""),
-        order: groupOrderMap.get(categoryTitle),
+        order: groupOrderMap.get(categoryTitle) ?? 99,
         links: data.links,
         indexHref: data.indexHref,
         icon: data.icon,
       });
     });
+
     navGroups.sort((a, b) => {
       if (a.title.toLowerCase() === 'general') return -1;
       if (b.title.toLowerCase() === 'general') return 1;
-      return (a.order || 0) - (b.order || 0);
+      return (a.order || 99) - (b.order || 99);
     });
 
     return navGroups;
   } catch (error) {
-    console.error('Error global en getNavigation', error);
+    console.error('Error global en getNavigation (GitHub):', error);
     return [];
   }
 });
@@ -443,8 +470,23 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   let isIndex = false;
   let currentDir = "";
 
+  // Determinar versión y slug real
+  let version = "";
+  let realSlugArray = [...slugArray];
+
+  if (GITHUB_CONFIG.versions.length > 0) {
+    if (slugArray.length > 0 && GITHUB_CONFIG.versions.some(v => v.id === slugArray[0])) {
+      version = slugArray[0];
+      realSlugArray = slugArray.slice(1);
+    } else {
+      // Si no hay versión en el slug pero se requieren versiones, tomamos la primera por defecto
+      version = GITHUB_CONFIG.versions[0].id;
+    }
+  }
+
   if (localBase && fs.existsSync(localBase)) {
-    const targetPath = path.join(localBase, ...slugArray);
+    const localPath = version ? path.join(localBase, version) : localBase;
+    const targetPath = path.join(localPath, ...realSlugArray);
     let localFile = targetPath + ".md";
     currentDir = targetPath;
     
@@ -476,12 +518,15 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
     const treeData = await getGitTree();
     if (!treeData) return null;
 
-    const basePath = `${GITHUB_CONFIG.docsPath}/${slugArray.join('/')}`;
-    let filePath = `${basePath}.md`;
+    const effectiveDocsPath = version ? `${GITHUB_CONFIG.docsPath}/${version}` : GITHUB_CONFIG.docsPath;
+    const basePath = `${effectiveDocsPath}/${realSlugArray.join('/')}`;
+    let filePath = `${basePath.replace(/\/$/, '')}.md`;
+    if (realSlugArray.length === 0) filePath = `${effectiveDocsPath}/index.md`;
+
     let file = treeData.tree.find((item) => item.type === 'blob' && item.path === filePath);
 
     if (!file) {
-      filePath = `${basePath}/index.md`;
+      filePath = `${basePath.replace(/\/$/, '')}/index.md`;
       file = treeData.tree.find((item) => item.type === 'blob' && item.path === filePath);
       if (file) isIndex = true;
     }
@@ -500,7 +545,7 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
 
   // Si es un índice, poblar hijos
   if (docResult && isIndex) {
-    const children: { title: string; href: string; description?: string; order?: number; icon?: string }[] = [];
+    const childrenMap = new Map<string, { title: string; href: string; description?: string; order?: number; icon?: string }>();
     
     if (localBase && fs.existsSync(localBase)) {
       const items = await readdir(currentDir);
@@ -525,9 +570,10 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
             description = data.description || "";
             order = data.order ?? order;
             icon = data.icon;
-            const cleanSlug = [...slugArray];
+            const versionPrefix = version ? `${version}/` : "";
+            const cleanSlug = [...realSlugArray];
             if (cleanSlug[cleanSlug.length - 1] === "index") cleanSlug.pop();
-            href = `/${[...cleanSlug, item].join("/")}`;
+            href = `/${versionPrefix}${[...cleanSlug, item].join("/")}`;
           } else {
             continue; // Skip dirs without index.md
           }
@@ -539,13 +585,14 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
           description = data.description || "";
           order = data.order ?? order;
           icon = data.icon;
-          const cleanSlug = [...slugArray];
+          const versionPrefix = version ? `${version}/` : "";
+          const cleanSlug = [...realSlugArray];
           if (cleanSlug[cleanSlug.length - 1] === "index") cleanSlug.pop();
-          href = `/${[...cleanSlug, item.replace(/\.md$/, "")].join("/")}`;
+          href = `/${versionPrefix}${[...cleanSlug, item.replace(/\.md$/, "")].join("/")}`;
         }
 
-        if (href) {
-          children.push({ 
+        if (href && !childrenMap.has(href)) {
+          childrenMap.set(href, { 
             title: title.charAt(0).toUpperCase() + title.slice(1), 
             href, 
             description, 
@@ -558,13 +605,18 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
       // GitHub children logic
       const treeData = await getGitTree();
       if (treeData) {
-        const basePath = `${GITHUB_CONFIG.docsPath}/${slugArray.join('/')}`;
+        const effectiveDocsPath = version ? `${GITHUB_CONFIG.docsPath}/${version}` : GITHUB_CONFIG.docsPath;
+        const basePath = `${effectiveDocsPath}/${realSlugArray.join('/')}`;
+        
         // Find children: blobs or trees that start with basePath/ and are exactly one level deeper
         const directChildren = treeData.tree.filter(item => {
           if (!item.path.startsWith(basePath + '/')) return false;
           const relPath = item.path.replace(basePath + '/', '');
-          // If it's a folder, it should only have one part (no more slashes)
-          // If it's a file, same thing (one part which includes .md)
+          
+          // No incluir el propio archivo index.md del nivel actual
+          if (relPath === "index.md") return false;
+
+          // Si es un archivo MD directo o una carpeta (tree)
           return !relPath.includes('/') || (relPath.endsWith('/index.md') && relPath.split('/').length === 2);
         });
 
@@ -579,9 +631,14 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
           let icon: string | undefined = undefined;
           let href = "";
 
+          // URL generation logic (reutilizable)
+          const versionPrefix = version ? `${version}/` : "";
+          const cleanSlug = [...realSlugArray];
+          if (cleanSlug[cleanSlug.length - 1] === "index") cleanSlug.pop();
+
           if (item.type === 'tree' || (item.type === 'blob' && item.path.endsWith('/index.md'))) {
-            // It's a subfolder or a folder index
-            const folderSlug = item.type === 'tree' ? name : parts[parts.length - 2];
+            // Es una subcarpeta
+            const folderName = item.type === 'tree' ? name : parts[parts.length - 2];
             const indexPath = item.type === 'tree' ? `${item.path}/index.md` : item.path;
             const indexFile = treeData.tree.find(f => f.path === indexPath);
             
@@ -594,15 +651,14 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
                 description = data.description || "";
                 order = data.order ?? order;
                 icon = data.icon;
-                href = `/${[...slugArray, folderSlug].join('/')}`;
+                href = `/${versionPrefix}${[...cleanSlug, folderName].join('/')}`;
               }
-            } else if (item.type === 'tree') {
-              // Directory without index.md - skip or use default name?
-              // The local logic skips dirs without index.md
+            } else {
+              // Sin index.md localmente se salta, aquí también
               return null;
             }
           } else if (item.type === 'blob' && item.path.endsWith('.md') && !item.path.endsWith('/index.md')) {
-            // It's a regular document
+            // Es un documento MD
             const res = await getFileContent(item);
             if (res) {
               const { data } = matter(res.content);
@@ -611,7 +667,7 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
               description = data.description || "";
               order = data.order ?? order;
               icon = data.icon;
-              href = `/${[...slugArray, name.replace(/\.md$/, "")].join('/')}`;
+              href = `/${versionPrefix}${[...cleanSlug, name.replace(/\.md$/, "")].join('/')}`;
             }
           }
 
@@ -622,11 +678,15 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
         });
 
         const results = await Promise.all(fetchPromises);
-        results.forEach(r => { if(r) children.push(r); });
+        results.forEach(r => { 
+          if(r && !childrenMap.has(r.href)) {
+            childrenMap.set(r.href, r);
+          }
+        });
       }
     }
     
-    docResult.children = children.sort((a, b) => {
+    docResult.children = Array.from(childrenMap.values()).sort((a, b) => {
       if (a.title.toLowerCase() === 'general') return -1;
       if (b.title.toLowerCase() === 'general') return 1;
       return (a.order || 99) - (b.order || 99);

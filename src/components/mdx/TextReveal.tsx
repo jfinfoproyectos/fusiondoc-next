@@ -16,16 +16,26 @@ export function TextReveal({
   delay?: number;
 }) {
   const containerRef = useRef<HTMLElement>(null);
-  const isInView = useInView(containerRef, { once: true, amount: "some" });
+  const isInView = useInView(containerRef, { once: false, amount: "some" });
 
   useEffect(() => {
-    if (isInView && containerRef.current) {
-      animate(containerRef.current.querySelectorAll('.letter'), {
+    const nodes = containerRef.current?.querySelectorAll('.letter');
+    if (!nodes) return;
+    
+    if (isInView) {
+      animate(nodes, {
         translateY: ["1.5em", 0],
         opacity: [0, 1],
         duration: 800,
         delay: stagger(30, { start: delay }),
         ease: "outExpo",
+      });
+    } else {
+      // Reset animation styles when out of view
+      animate(nodes, {
+        translateY: "1.5em",
+        opacity: 0,
+        duration: 0
       });
     }
   }, [isInView, delay]);

@@ -7,6 +7,7 @@ import { CodeThemeSelector } from "@/components/CodeThemeSelector";
 import { getCodeTheme } from "@/app/actions/code-themes";
 import { SITE_CONFIG } from '@/config';
 import { Search } from './Search';
+import VersionSelector from './VersionSelector';
 
 export default async function Header() {
   let socialLinks: { name: string; url: string; icon: string }[] = [];
@@ -30,6 +31,7 @@ export default async function Header() {
              <DynamicIcon icon={SITE_CONFIG.logo} width="24" height="24" />
              {SITE_CONFIG.title}
           </Link>
+          <VersionSelector />
         </div>
 
         <div className="flex-1 max-w-sm mx-4 md:mx-8">

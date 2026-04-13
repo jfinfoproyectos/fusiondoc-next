@@ -18,18 +18,44 @@ En este documento detallaremos exhaustivamente el sistema de archivos, el motor 
 El árbol principal del código fuente está diseñado para separar limpiamente la configuración, la interfaz de usuario y el motor lógico.
 
 <FileTree>
-  <Folder name="docs" highlighted>Carpeta raíz de toda tu documentación</Folder>
+  <Folder name="docs" highlighted>Carpeta raíz. Puede contener versiones o tópicos directos</Folder>
+  <Folder name="docs/v1" highlighted>Ejemplo de carpeta de versión (Opcional)</Folder>
+  <Folder name="docs/v2" highlighted>Ejemplo de carpeta de versión (Opcional)</Folder>
   <Folder name="public">Archivos estáticos (imágenes, logos)</Folder>
   <Folder name="src" defaultOpen>
     <Folder name="app">Next.js App Router (Páginas, Layouts, API)</Folder>
     <Folder name="components">Componentes React y MDX personalizados</Folder>
-    <Folder name="lib">Lógica base, integraciones y utilidades (Github API, etc.)</Folder>
-    <Folder name="types">Definiciones de tipos TypeScript globales</Folder>
+    <Folder name="lib">Lógica base e integraciones (Github, Versiones, Search)</Folder>
   </Folder>
-  <File name="globals.css">Punto de entrada de CSS y configuración de temas Tailwind v4</File>
-  <File name="next.config.ts">Configuración del compilador y bundler de Next.js</File>
+  <File name=".env.local">Configuración de variables de entorno (Título, Versiones, etc.)</File>
   <File name="package.json">Control de dependencias</File>
 </FileTree>
+
+---
+
+## 🔄 Sistema de Versionado
+
+FusionDoc permite gestionar múltiples versiones de tu documentación (ej. v1, v2, v3) de forma simultánea.
+
+### Configuración
+El sistema se activa mediante la variable `NEXT_PUBLIC_GITHUB_VERSIONS` en el `.env.local`. Puedes usar una lista simple o un JSON para mayor detalle:
+
+```bash
+# Ejemplo avanzado con nombres y descripciones
+NEXT_PUBLIC_GITHUB_VERSIONS='[
+  {"id": "v1", "name": "V1.0", "description": "Versión inicial"},
+  {"id": "v2", "name": "V2.0", "description": "Estable - Recomendada"}
+]'
+```
+
+### Impacto en la Estructura
+Cuando el versionado está activo, el motor de FusionDoc espera que cada entrada del array sea una subcarpeta dentro de `docs/`. 
+
+- **Con Versiones:** La ruta física es `docs/{version}/{topic}/{slug}.md`.
+- **Sin Versiones:** La ruta física se mantiene como `docs/{topic}/{slug}.md`.
+
+> [!IMPORTANT]
+> Si habilitas versiones, el **Selector de Versiones** aparecerá automáticamente en el Header (barra principal), permitiendo a los usuarios cambiar de contexto manteniendo su posición relativa en la documentación.
 
 ---
 
@@ -55,9 +81,9 @@ El motor core de FusionDoc (`src/lib/github.ts`) procesa estos nombres de la sig
 Para garantizar una experiencia de usuario (UX) coherente, FusionDoc implementa una jerarquía estricta de 3 niveles:
 
 ### Nivel 1: Tópicos (Topics)
-Son las carpetas raíz dentro de `docs/`. 
+Son las carpetas raíz dentro de `docs/` (o dentro de la carpeta de versión activa). 
 - **Representación:** Aparecen como pestañas principales en el **Header** (barra superior).
-- **Ejemplo:** `docs/01-fundamentos/`. Cada tópico agrupa grandes áreas de conocimiento.
+- **Ejemplo:** `docs/v1/01-fundamentos/`. Cada tópico agrupa grandes áreas de conocimiento.
 
 ### Nivel 2: Categorías (Categories)
 Son subcarpetas dentro de un Tópico.

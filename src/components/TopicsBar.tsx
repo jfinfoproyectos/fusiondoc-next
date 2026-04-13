@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/components/DynamicIcon';
+import { getEffectiveVersion, getTopicFromPath } from '@/lib/version-utils';
 
 interface Topic {
   title: string;
@@ -17,13 +18,14 @@ export default function TopicsBar() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Determine active topic from pathname
-  const activeTopic = pathname.split('/').filter(Boolean)[0];
+  const activeVersion = getEffectiveVersion(pathname);
+  const activeTopic = getTopicFromPath(pathname);
 
   useEffect(() => {
     async function loadTopics() {
       try {
-        const res = await fetch('/api/topics');
+        const url = `/api/topics${activeVersion ? `?version=${activeVersion}` : ''}`;
+        const res = await fetch(url);
         const data = await res.json();
         setTopics(data.topics || []);
       } catch (err) {
@@ -33,7 +35,7 @@ export default function TopicsBar() {
       }
     }
     loadTopics();
-  }, []);
+  }, [activeVersion]);
 
   if (!loading && topics.length === 0) return null;
 
@@ -50,7 +52,7 @@ export default function TopicsBar() {
             return (
               <Link
                 key={topic.slug}
-                href={`/${topic.slug}`}
+                href={activeVersion ? `/${activeVersion}/${topic.slug}` : `/${topic.slug}`}
                 className={`px-4 py-1 text-xs font-medium rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/20'

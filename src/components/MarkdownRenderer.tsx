@@ -1,6 +1,7 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getCodeTheme } from "@/app/actions/code-themes";
 import remarkGfm from "remark-gfm";
+import { remarkP5Sketch } from "@/lib/remark-p5";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
 import { CodeTabs, CodeTab } from "./mdx/CodeTabs";
@@ -30,6 +31,16 @@ import { TextReveal } from "./mdx/TextReveal";
 import { AnimatedSVG } from "./mdx/AnimatedSVG";
 import { TimelineFlow } from "./mdx/TimelineFlow";
 import { X6Diagram } from "./mdx/X6Diagram";
+import { AlgoVisualizer } from "./mdx/AlgoVisualizer";
+import { P5Sketch } from "./mdx/P5Sketch";
+import { JSXGraphBoard } from "./mdx/JSXGraphBoard";
+import {
+  MafsBoard,
+  MafsCoordinates,
+  MafsPlot,
+  MafsPoint,
+} from "./mdx/MafsComponents";
+import { LatexBlock, LatexInline } from "./mdx/Latex";
 
 
 interface MarkdownRendererProps {
@@ -71,6 +82,9 @@ const components = {
   Tooltip,
   Kbd,
   X6Diagram,
+  AlgoVisualizer,
+  P5Sketch,
+  JSXGraphBoard,
 
   // Aliases
   icon: MdxIcon,
@@ -130,6 +144,20 @@ const components = {
   svgdraw: AnimatedSVG,
   flow: TimelineFlow,
   X6: X6Diagram,
+  algo: AlgoVisualizer,
+  Algo: AlgoVisualizer,
+  sketch: P5Sketch,
+  Sketch: P5Sketch,
+  JSXGraph: JSXGraphBoard,
+  jsxgraph: JSXGraphBoard,
+  MafsBoard,
+  MafsCoordinates,
+  MafsPlot,
+  MafsPoint,
+  Latex: LatexBlock,
+  LatexInline,
+  Math: LatexBlock,
+  MathInline: LatexInline,
 
   // Override figure to wrap code blocks
   figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
@@ -144,7 +172,7 @@ export default async function MarkdownRenderer({ content }: MarkdownRendererProp
   const codeTheme = await getCodeTheme();
 
   const mdxOptions: any = {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [remarkGfm, remarkP5Sketch],
     rehypePlugins: [
       rehypeSlug,
       [rehypePrettyCode, {
