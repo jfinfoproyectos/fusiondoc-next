@@ -11,14 +11,22 @@ export async function setCodeTheme(themeId: string) {
     path: "/",
   });
   
-  // Revalidate the entire documentation to reflect the new theme in Server Components
-  revalidatePath("/", "layout");
+  // We don't call heavy revalidatePath("/", "layout") here anymore
+  // because we're using router.refresh() on the client for instant updates.
 }
 
 export async function getCodeTheme() {
+  // If a default is forced in .env, use it strictly
   if (SITE_CONFIG.defaultCodeTheme) {
     return SITE_CONFIG.defaultCodeTheme;
   }
+
   const cookieStore = await cookies();
-  return cookieStore.get("code-theme")?.value || "github-dark";
+  const themeFromCookie = cookieStore.get("code-theme")?.value;
+  
+  if (themeFromCookie) {
+    return themeFromCookie;
+  }
+  
+  return "github-dark";
 }

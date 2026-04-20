@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import DynamicIcon from '@/components/DynamicIcon';
-import { getEffectiveVersion, getTopicFromPath } from '@/lib/version-utils';
+import { getEffectiveProject, getTopicFromPath } from '@/lib/version-utils';
 
 interface Topic {
   title: string;
@@ -13,13 +13,19 @@ interface Topic {
   icon?: string;
 }
 
-export default function TopicsBar() {
+export default function TopicsBar({ 
+  projects, 
+  subdomainMode 
+}: { 
+  projects: { id: string, name: string }[], 
+  subdomainMode: boolean 
+}) {
   const pathname = usePathname();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const activeVersion = getEffectiveVersion(pathname);
-  const activeTopic = getTopicFromPath(pathname);
+  const activeVersion = getEffectiveProject(pathname, projects);
+  const activeTopic = getTopicFromPath(pathname, projects);
 
   useEffect(() => {
     async function loadTopics() {
@@ -52,7 +58,7 @@ export default function TopicsBar() {
             return (
               <Link
                 key={topic.slug}
-                href={activeVersion ? `/${activeVersion}/${topic.slug}` : `/${topic.slug}`}
+                href={subdomainMode ? `/${topic.slug}` : `/${activeVersion}/${topic.slug}`}
                 className={`px-4 py-1 text-xs font-medium rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 ring-1 ring-primary/20'

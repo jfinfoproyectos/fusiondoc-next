@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Code2, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,12 +18,43 @@ import { cn } from "@/lib/utils";
 const SHIKI_THEMES = [
   { id: "github-dark", name: "GitHub Dark" },
   { id: "github-light", name: "GitHub Light" },
-  { id: "nord", name: "Nord" },
   { id: "dracula", name: "Dracula" },
+  { id: "dracula-soft", name: "Dracula Soft" },
+  { id: "nord", name: "Nord" },
+  { id: "tokyo-night", name: "Tokyo Night" },
+  { id: "night-owl", name: "Night Owl" },
+  { id: "ayu-dark", name: "Ayu Dark" },
+  { id: "one-dark-pro", name: "One Dark Pro" },
+  { id: "one-light", name: "One Light" },
   { id: "monokai", name: "Monokai" },
   { id: "vesper", name: "Vesper" },
+  { id: "poimandres", name: "Poimandres" },
   { id: "rose-pine", name: "Rosé Pine" },
-  { id: "one-dark-pro", name: "One Dark Pro" },
+  { id: "rose-pine-moon", name: "Rosé Pine Moon" },
+  { id: "rose-pine-dawn", name: "Rosé Pine Dawn" },
+  { id: "catppuccin-frappe", name: "Catppuccin Frappé" },
+  { id: "catppuccin-latte", name: "Catppuccin Latte" },
+  { id: "catppuccin-macchiato", name: "Catppuccin Macchiato" },
+  { id: "catppuccin-mocha", name: "Catppuccin Mocha" },
+  { id: "kanagawa-wave", name: "Kanagawa Wave" },
+  { id: "kanagawa-dragon", name: "Kanagawa Dragon" },
+  { id: "kanagawa-lotus", name: "Kanagawa Lotus" },
+  { id: "material-theme", name: "Material Default" },
+  { id: "material-theme-darker", name: "Material Darker" },
+  { id: "material-theme-lighter", name: "Material Lighter" },
+  { id: "material-theme-ocean", name: "Material Ocean" },
+  { id: "material-theme-palenight", name: "Material Palenight" },
+  { id: "everforest-dark", name: "Everforest Dark" },
+  { id: "everforest-light", name: "Everforest Light" },
+  { id: "solarized-dark", name: "Solarized Dark" },
+  { id: "solarized-light", name: "Solarized Light" },
+  { id: "laserwave", name: "Laserwave" },
+  { id: "synthwave-84", name: "Synthwave '84" },
+  { id: "vitesse-dark", name: "Vitesse Dark" },
+  { id: "vitesse-light", name: "Vitesse Light" },
+  { id: "slack-dark", name: "Slack Dark" },
+  { id: "slack-ochin", name: "Slack Ochin" },
+  { id: "houston", name: "Houston (Astro)" },
   { id: "min-dark", name: "Min Dark" },
   { id: "min-light", name: "Min Light" },
 ];
@@ -32,6 +64,7 @@ interface CodeThemeSelectorProps {
 }
 
 export function CodeThemeSelector({ currentTheme }: CodeThemeSelectorProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [activeTheme, setActiveTheme] = useState(currentTheme);
 
@@ -39,6 +72,10 @@ export function CodeThemeSelector({ currentTheme }: CodeThemeSelectorProps) {
     setActiveTheme(themeId);
     startTransition(async () => {
       await setCodeTheme(themeId);
+      // Dispatch custom event for reactive updates (like the editor preview)
+      window.dispatchEvent(new CustomEvent("code-theme-change", { detail: themeId }));
+      // Efficiently refresh only the server components of the current page
+      router.refresh();
     });
   };
 

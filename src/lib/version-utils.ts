@@ -1,34 +1,32 @@
-import { GITHUB_CONFIG } from '@/config';
+type Project = { id: string; name: string };
 
-export function getVersionFromPath(pathname: string): string | undefined {
+export function getProjectFromPath(pathname: string, projects: Project[]): string | undefined {
   const parts = pathname.split('/').filter(Boolean);
-  if (parts.length > 0 && GITHUB_CONFIG.versions.some(v => v.id === parts[0])) {
+  if (parts.length > 0 && projects.some(p => p.id === parts[0])) {
     return parts[0];
   }
   return undefined;
 }
 
-export function getEffectiveVersion(pathname: string): string | undefined {
-  const version = getVersionFromPath(pathname);
-  if (version) return version;
-  return GITHUB_CONFIG.versions.length > 0 ? GITHUB_CONFIG.versions[0].id : undefined;
+export function getEffectiveProject(pathname: string, projects: Project[]): string | undefined {
+  return getProjectFromPath(pathname, projects);
 }
 
-export function getTopicFromPath(pathname: string): string | undefined {
+export function getTopicFromPath(pathname: string, projects: Project[]): string | undefined {
   const parts = pathname.split('/').filter(Boolean);
-  const hasVersion = parts.length > 0 && GITHUB_CONFIG.versions.some(v => v.id === parts[0]);
+  const hasProject = parts.length > 0 && projects.some(p => p.id === parts[0]);
   
-  if (hasVersion) {
+  if (hasProject) {
     return parts.length > 1 ? parts[1] : undefined;
   }
   return parts.length > 0 ? parts[0] : undefined;
 }
 
-export function getRelativePath(pathname: string): string {
+export function getRelativePath(pathname: string, projects: Project[]): string {
   const parts = pathname.split('/').filter(Boolean);
-  const version = getVersionFromPath(pathname);
+  const proj = getProjectFromPath(pathname, projects);
   
-  if (version) {
+  if (proj) {
     return parts.slice(1).join('/');
   }
   return parts.join('/');

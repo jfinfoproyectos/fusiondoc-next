@@ -23,7 +23,7 @@ export default function RightSidebar() {
   }, []);
 
   return (
-    <aside className="w-64 p-4 hidden xl:block shrink-0 sticky top-[104px] h-[calc(100vh-104px-var(--footer-height))] overflow-y-auto border-l border-border">
+    <aside className="w-64 p-4 hidden xl:block shrink-0 h-full overflow-y-auto border-l border-border custom-scrollbar">
       <h4 className="font-semibold mb-4 text-foreground border-b border-border pb-2">En esta página</h4>
       <ul className="space-y-2 text-sm">
         {headings.length === 0 && <li className="text-muted-foreground">No hay encabezados</li>}

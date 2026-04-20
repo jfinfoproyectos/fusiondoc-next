@@ -21,48 +21,24 @@ export interface ThemeInfo {
 
 interface ThemeSelectorProps {
   themes: ThemeInfo[];
-  forcedTheme?: string | null;
+  defaultTheme?: string | null;
 }
 
-export function ThemeSelector({ themes, forcedTheme }: ThemeSelectorProps) {
+export function ThemeSelector({ themes, defaultTheme }: ThemeSelectorProps) {
   const [mounted, setMounted] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string>("default");
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = forcedTheme || localStorage.getItem("fusiondoc-theme") || "default";
+    const savedTheme = defaultTheme || localStorage.getItem("fusiondoc-theme") || "default";
     setActiveTheme(savedTheme);
-  }, [forcedTheme]);
+  }, [defaultTheme]);
 
   useEffect(() => {
     if (!mounted) return;
-
-    const elId = "fusiondoc-dynamic-theme";
-    let styleEl = document.getElementById(elId);
-
-    if (activeTheme === "default") {
-      if (styleEl) styleEl.remove();
-      localStorage.setItem("fusiondoc-theme", "default");
-      return;
-    }
-
-    const themeData = themes.find((t) => t.id === activeTheme);
-    if (!themeData) return;
-
-    if (!styleEl) {
-      styleEl = document.createElement("style");
-      styleEl.id = elId;
-      document.head.appendChild(styleEl);
-    }
-
-    // Inyectar el CSS crudo en el DOM para sobreescribir las variables CSS de :root y .dark
-    styleEl.innerHTML = themeData.cssContent;
-    
-    // Carga dinámica de fuentes de Google si se detectan
-    handleFontLoading(themeData.cssContent);
-    
     localStorage.setItem("fusiondoc-theme", activeTheme);
-  }, [activeTheme, themes, mounted]);
+    window.dispatchEvent(new CustomEvent("fusiondoc-theme-change", { detail: activeTheme }));
+  }, [activeTheme, mounted]);
 
   const handleFontLoading = (css: string) => {
     // Buscar definiciones de fuentes en las variables
@@ -85,24 +61,24 @@ export function ThemeSelector({ themes, forcedTheme }: ThemeSelectorProps) {
       const fontQuery = Array.from(foundFonts)
         .map(f => `family=${f.replace(/\s+/g, '+')}:wght@400;500;700`)
         .join('&');
-      
+
       const linkId = "fusiondoc-dynamic-fonts";
       let linkEl = document.getElementById(linkId) as HTMLLinkElement;
-      
+
       if (!linkEl) {
         linkEl = document.createElement("link");
         linkEl.id = linkId;
         linkEl.rel = "stylesheet";
         document.head.appendChild(linkEl);
       }
-      
+
       linkEl.href = `https://fonts.googleapis.com/css2?${fontQuery}&display=swap`;
     }
   };
 
   const isSystemFont = (font: string) => {
     const systemFonts = [
-      'inter', 'roboto', 'geist', 'sans-serif', 'serif', 'monospace', 
+      'inter', 'roboto', 'geist', 'sans-serif', 'serif', 'monospace',
       'ui-sans-serif', 'system-ui', '-apple-system', 'blinkmacsystemfont',
       'segoe ui', 'helvetica neue', 'arial', 'noto sans', 'apple color emoji',
       'segoe ui emoji', 'segoe ui symbol', 'noto color emoji', 'georgia',
@@ -123,23 +99,21 @@ export function ThemeSelector({ themes, forcedTheme }: ThemeSelectorProps) {
     );
   }
 
-  // Si hay un tema forzado, no renderizamos el selector en el UI, 
-  // pero los useEffect de arriba ya se encargaron de aplicar el CSS.
-  if (forcedTheme) return null;
+
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="shrink-0" title="Cambiar Apariencia">
-           <Palette className="h-[1.2rem] w-[1.2rem] transition-all" />
-           <span className="sr-only">Seleccionar Tema</span>
+          <Palette className="h-[1.2rem] w-[1.2rem] transition-all" />
+          <span className="sr-only">Seleccionar Tema</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[150px]">
         <DropdownMenuLabel>Estilo Visual</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
-        <DropdownMenuItem 
+
+        <DropdownMenuItem
           onClick={() => setActiveTheme("default")}
           className="flex items-center justify-between cursor-pointer"
         >
@@ -151,14 +125,14 @@ export function ThemeSelector({ themes, forcedTheme }: ThemeSelectorProps) {
         </DropdownMenuItem>
 
         {themes.map((theme) => (
-          <DropdownMenuItem 
+          <DropdownMenuItem
             key={theme.id}
             onClick={() => setActiveTheme(theme.id)}
             className="flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 shadow-inner" 
+              <div
+                className="w-3 h-3 rounded-full border border-black/10 dark:border-white/10 shadow-inner"
                 style={{ backgroundColor: theme.primaryColor }}
               />
               <span>{theme.name}</span>

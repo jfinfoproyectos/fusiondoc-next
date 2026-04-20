@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FusionDoc Next
 
-## Getting Started
+FusionDoc es un entorno avanzado y dinámico para visualización de documentación de proyectos, construido sobre **Next.js 16 (Turbopack)**. El sistema extrae, categoriza y renderiza automáticamente archivos Markdown (MD/MDX) provenientes de repositorios GitHub, proporcionando una interfaz rica en componentes, rápida e inmersiva.
 
-First, run the development server:
+## 🚀 Características Principales
+- **Conectividad Git:** Obtención dinámica de documentos MD y MDX desde repositorios.
+- **Rendimiento Next.js 16:** Aprovechando SSG/SSR y Turbopack para compilación rápida.
+- **Auto-Despliegue y Distribución Cerrada:** Empaquetado disponible en Docker y distribuible de manera segura por NPM.
+- **Estilos Premium:** Integración nativa con TailwindCSS v4 y Shadcn UI.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 💻 Desarrollo Local (Para Autores)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para modificar el código fuente de FusionDoc, sigue estos pasos:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Clona y Configura el `.env`**
+   Copia el archivo `.env.example` y renómbralo a `.env.local`
+   Añade la información obligatoria de tu repositorio (Dueño, Repo, Rama).
 
-## Learn More
+2. **Inicia el servidor de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+3. Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 Despliegue en la Nube (Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+El proyecto está 100% optimizado para ser desplegado nativamente en Vercel.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Sube este proyecto a tu repositorio de GitHub.
+2. Inicia sesión en [Vercel](https://vercel.com).
+3. Importa tu repositorio.
+4. Configura las variables de entorno (`GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_BRANCH`) en la configuración del proyecto en Vercel.
+5. Vercel compilará mágicamente tu sitio y te dará tu URL optimizada.
+6. (Opcional): Si usas Docker en otra plataforma, usa el `Dockerfile` incluido.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📄 Licencia y Uso
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Este proyecto se distribuye bajo la **Licencia MIT**.
+Se permite el **libre uso, modificación, distribución y uso comercial**, siempre y cuando se **reconozca al creador original** incluyendo una copia de la licencia y los derechos de autor en las copias sustanciales del software.
+
+Dicho de forma simple: Eres libre de usar el proyecto como gustes, pero debes mantener visible el crédito al autor original. Revisa el archivo `LICENSE` adjunto para más detalles técnicos.
+
+> Creado por: **Jhon F** (FusionDoc Architecture)

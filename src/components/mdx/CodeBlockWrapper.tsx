@@ -78,58 +78,58 @@ export function CodeBlockWrapper({ children, className, ...props }: any) {
     <>
       <div
         className={cn(
-          "group relative my-6 flex flex-col overflow-hidden rounded-lg bg-[#0d1117] ring-1 ring-white/10 text-gray-100",
-          isFullscreen && "fixed inset-4 z-50 my-0 h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] shadow-2xl",
+          "group relative my-6 flex flex-col overflow-hidden rounded-lg ring-1 ring-border/50",
+          isFullscreen && "fixed inset-4 z-50 my-0 h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] shadow-2xl bg-background",
           showNumbers && "show-line-numbers",
           className
         )}
         {...props}
       >
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#0d1117] px-4 py-2 text-white/50">
+        <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 backdrop-blur-md px-4 py-2 text-muted-foreground">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex gap-1.5 shrink-0">
-              <div className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-              <div className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-              <div className="h-3 w-3 rounded-full bg-[#27c93f]" />
+              <div className="h-3 w-3 rounded-full bg-red-500/50" />
+              <div className="h-3 w-3 rounded-full bg-amber-500/50" />
+              <div className="h-3 w-3 rounded-full bg-emerald-500/50" />
             </div>
             
             {extractedTitle && (
-              <div className="ml-2 truncate text-xs font-medium text-white/70">
+              <div className="ml-2 truncate text-[10px] font-black uppercase tracking-widest opacity-70">
                 {extractedTitle}
               </div>
             )}
             
-            <div className="ml-4 flex gap-2 border-l border-white/10 pl-4 shrink-0">
-              <button onClick={() => setZoomLevel(Math.max(0, zoomLevel - 1))} className="hover:text-white transition-colors" title="Reducir">
-                <ZoomOut size={16} />
+            <div className="ml-4 flex gap-2 border-l border-border/50 pl-4 shrink-0">
+              <button onClick={() => setZoomLevel(Math.max(0, zoomLevel - 1))} className="hover:text-foreground transition-colors" title="Reducir">
+                <ZoomOut size={14} />
               </button>
-              <button onClick={() => setZoomLevel(Math.min(zoomClasses.length - 1, zoomLevel + 1))} className="hover:text-white transition-colors" title="Ampliar">
-                <ZoomIn size={16} />
+              <button onClick={() => setZoomLevel(Math.min(zoomClasses.length - 1, zoomLevel + 1))} className="hover:text-foreground transition-colors" title="Ampliar">
+                <ZoomIn size={14} />
               </button>
               <button 
                 onClick={() => setShowNumbers(!showNumbers)} 
-                className={cn("hover:text-white transition-colors ml-2", showNumbers && "text-primary")} 
+                className={cn("hover:text-foreground transition-colors ml-2", showNumbers && "text-primary")} 
                 title="Alternar numeración"
               >
-                <Hash size={16} />
+                <Hash size={14} />
               </button>
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={handleCopy} className="hover:text-white transition-colors" title="Copiar código">
-              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+            <button onClick={handleCopy} className="hover:text-foreground transition-colors" title="Copiar código">
+              {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
             </button>
-            <button onClick={() => setIsFullscreen(!isFullscreen)} className="hover:text-white transition-colors" title="Pantalla completa">
-              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            <button onClick={() => setIsFullscreen(!isFullscreen)} className="hover:text-foreground transition-colors" title="Pantalla completa">
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </button>
           </div>
         </div>
         <div ref={containerRef} className={cn(
           "overflow-auto flex-1 w-full", 
           zoomClasses[zoomLevel], 
-          "[&_pre]:!bg-transparent [&_pre]:!p-4 [&_pre]:!m-0 [&_figcaption]:hidden",
-          "[&_code]:!text-[#c9d1d9] [&_code]:!bg-transparent [&_code]:!shadow-none [&_code]:!ring-0 [&_code]:!border-0",
-          "prose-pre:!bg-transparent prose-pre:!text-[#c9d1d9]"
+          "[&_pre]:!p-4 [&_pre]:!m-0 [&_figcaption]:hidden",
+          "[&_code]:!bg-transparent [&_code]:!shadow-none [&_code]:!ring-0 [&_code]:!border-0",
+          "prose-pre:!p-0"
         )}>
           {children}
         </div>

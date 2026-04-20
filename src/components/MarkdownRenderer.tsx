@@ -1,9 +1,11 @@
-import { MDXRemote } from "next-mdx-remote/rsc";
+import { compileMDX } from "next-mdx-remote/rsc";
 import { getCodeTheme } from "@/app/actions/code-themes";
 import remarkGfm from "remark-gfm";
 import { remarkP5Sketch } from "@/lib/remark-p5";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { MdxErrorFallback } from "./MdxErrorFallback";
 import { CodeTabs, CodeTab } from "./mdx/CodeTabs";
 import { CodeBlockWrapper } from "./mdx/CodeBlockWrapper";
 import { Terminal } from "./mdx/Terminal";
@@ -159,7 +161,8 @@ const components = {
   Math: LatexBlock,
   MathInline: LatexInline,
 
-  // Override figure to wrap code blocks
+  // Map standard HTML tags or custom components
+  p: (props: any) => <div {...props} className="my-4 last:mb-0" />,
   figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
     if (isPrettyCode !== undefined || 'data-rehype-pretty-code-figure' in props) {
       return <CodeBlockWrapper {...props} data-rehype-pretty-code-figure={isPrettyCode}>{children}</CodeBlockWrapper>;
@@ -167,6 +170,7 @@ const components = {
     return <figure {...props}>{children}</figure>;
   },
 };
+
 
 export default async function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const codeTheme = await getCodeTheme();
@@ -177,18 +181,27 @@ export default async function MarkdownRenderer({ content }: MarkdownRendererProp
       rehypeSlug,
       [rehypePrettyCode, {
         theme: codeTheme,
-        keepBackground: false,
+        keepBackground: true,
       }],
     ],
   };
 
-  return (
-    <article className="prose prose-blue max-w-none dark:prose-invert">
-      <MDXRemote 
-        source={content} 
-        components={components}
-        options={{ mdxOptions }}
-      />
-    </article>
-  );
+  try {
+    const { content: compiledContent } = await compileMDX({
+      source: content,
+      components,
+      options: { mdxOptions },
+    });
+
+    return (
+      <article className="prose max-w-none dark:prose-invert">
+        <ErrorBoundary>
+          {compiledContent}
+        </ErrorBoundary>
+      </article>
+    );
+  } catch (error: any) {
+    console.error("Critical MDX Parsing Error:", error);
+    return <MdxErrorFallback error={error} />;
+  }
 }

@@ -4,7 +4,13 @@ import { performSearch } from '@/lib/search';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
-  const version = searchParams.get('version') || undefined;
+  const versionParam = searchParams.get('version') || undefined;
+
+  const hostname = request.headers.get('host') || '';
+  const subdomain = hostname.split('.')[0];
+  const domainVersion = (subdomain && subdomain !== 'localhost' && subdomain !== 'www' && subdomain !== '127') ? subdomain : undefined;
+  
+  const version = versionParam || domainVersion;
 
   if (!query) {
     return NextResponse.json({ results: [] });

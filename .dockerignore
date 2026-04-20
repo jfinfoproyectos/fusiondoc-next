@@ -1,0 +1,14 @@
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git
+.vscode
+dist-npm
+# Jamás subir credenciales de desarrollo
+.env
+.env*.local
+.env.local
+.env.development

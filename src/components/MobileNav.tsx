@@ -13,19 +13,25 @@ import {
 import { Button } from "@/components/ui/button";
 import SidebarNav from './SidebarNav';
 import { NavGroup } from '@/lib/github';
-import { getEffectiveVersion, getTopicFromPath } from '@/lib/version-utils';
+import { getEffectiveProject, getTopicFromPath } from '@/lib/version-utils';
 import { SITE_CONFIG } from '@/config';
 import DynamicIcon from './DynamicIcon';
 import Link from 'next/link';
 
-export default function MobileNav() {
+export default function MobileNav({ 
+  projects, 
+  subdomainMode 
+}: { 
+  projects: { id: string, name: string }[], 
+  subdomainMode: boolean 
+}) {
   const pathname = usePathname();
   const [navItems, setNavItems] = useState<NavGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const activeVersion = getEffectiveVersion(pathname);
-  const activeTopic = getTopicFromPath(pathname);
+  const activeVersion = getEffectiveProject(pathname, projects);
+  const activeTopic = getTopicFromPath(pathname, projects);
 
   // Cargar navegación cuando se abre el menú o cambia el tópico
   useEffect(() => {

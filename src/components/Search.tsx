@@ -4,18 +4,31 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search as SearchIcon, X, FileText, Command, CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
-import { getEffectiveVersion } from '@/lib/version-utils';
+import { getEffectiveProject } from '@/lib/version-utils';
 
-export function Search() {
+export default function Search({ 
+  projects, 
+  subdomainMode 
+}: { 
+  projects: { id: string, name: string }[], 
+  subdomainMode: boolean 
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const activeVersion = getEffectiveVersion(pathname);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeVersion = getEffectiveProject(pathname, projects);
   const inputRef = useRef<HTMLInputElement>(null);
+
 
   const toggleSearch = useCallback(() => {
     setIsOpen((prev) => !prev);
@@ -64,7 +77,12 @@ export function Search() {
   }, [query]);
 
   const handleSelect = (url: string) => {
-    router.push(url);
+    // Si estamos en modo subdominio y el resultado pertenece a este proyecto, removemos el prefijo.
+    let targetUrl = url;
+    if (subdomainMode && activeVersion && url.startsWith(`/${activeVersion}`)) {
+      targetUrl = url.replace(`/${activeVersion}`, '') || '/';
+    }
+    router.push(targetUrl);
     setIsOpen(false);
   };
 
@@ -83,14 +101,21 @@ export function Search() {
   return (
     <>
       <button
-        onClick={toggleSearch}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground border border-border rounded-md hover:border-primary/50 hover:bg-accent/50 transition-all group w-full max-w-[240px]"
+        onClick={mounted ? toggleSearch : undefined}
+        disabled={!mounted}
+        className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-all group w-full max-w-[240px] border border-border
+          ${mounted 
+            ? 'text-muted-foreground hover:border-primary/50 hover:bg-accent/50 cursor-pointer' 
+            : 'text-muted-foreground/50 cursor-default opacity-50'}
+        `}
       >
         <SearchIcon className="w-4 h-4" />
         <span className="flex-1 text-left">Buscar</span>
-        <kbd className="hidden md:flex flex-row items-center gap-1 bg-muted px-1.5 py-0.5 rounded text-[10px] font-mono border border-border">
-          <Command className="w-2.5 h-2.5" /> K
-        </kbd>
+        {mounted && (
+          <kbd className="hidden md:flex flex-row items-center gap-1 bg-muted px-1.5 py-0.5 rounded text-[10px] font-mono border border-border">
+            <Command className="w-2.5 h-2.5" /> K
+          </kbd>
+        )}
       </button>
 
       <AnimatePresence>
