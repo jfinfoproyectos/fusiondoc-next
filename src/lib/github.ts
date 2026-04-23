@@ -380,9 +380,9 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   const projects = await getAvailableProjects();
 
   if (projects.length > 0) {
-    if (slugArray.length > 0 && projects.some(p => p.id === slugArray[0])) {
-      version = slugArray[0];
-      realSlugArray = slugArray.slice(1);
+    if (decodedSlugArray.length > 0 && projects.some(p => p.id === decodedSlugArray[0])) {
+      version = decodedSlugArray[0];
+      realSlugArray = decodedSlugArray.slice(1);
     } else {
       version = projects[0].id;
     }

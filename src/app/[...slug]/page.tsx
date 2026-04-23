@@ -35,9 +35,10 @@ export default async function Page({ params }: PageProps) {
   const subdomainMode = !!headersList.get('x-project-id');
 
   // Determinar el projectId (folder de primer nivel en /docs)
-  const projectId = projects.some(p => p.id === slug[0])
-    ? slug[0]
-    : projects[0]?.id ?? slug[0];
+  const decodedSlug = slug.map(s => decodeURIComponent(s));
+  const projectId = projects.some(p => p.id === decodedSlug[0])
+    ? decodedSlug[0]
+    : projects[0]?.id ?? decodedSlug[0];
 
   // Si el middleware nos mandó aquí por falta de acceso
   if (slug[slug.length - 1] === "access-denied") {
