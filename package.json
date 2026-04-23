@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "npm run prisma:generate && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "prisma:sync": "tsx src/scripts/sync-prisma.ts",
     "prisma:generate": "npm run prisma:sync && prisma generate",
     "postbuild": "node scripts/post-build.mjs",
-    "build:standalone": "cross-env BUILD_STANDALONE=true npm run build"
+    "build:standalone": "cross-env BUILD_STANDALONE=true npm run build",
+    "postinstall": "npm run prisma:generate"
   },
   "dependencies": {
     "@antv/x6": "^3.1.7",
