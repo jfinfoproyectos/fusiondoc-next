@@ -318,7 +318,7 @@ export function AdminProjectAssistant() {
                         { name: "Alert", icon: AlertCircle, usage: '<Alert variant="info" title="Info">...</Alert>' },
                         { name: "Steps", icon: Layers, usage: '<Steps>\n  <Step title="1">...</Step>\n</Steps>' },
                         { name: "Terminal", icon: TerminalIcon, usage: '<Terminal title="npm">npm start</Terminal>' },
-                        { name: "Kbd", icon: BookOpen, usage: '<Kbd keys={["ctrl", "s"]} />' },
+                        { name: "Embed", icon: Code2, usage: '<CodeEmbed url="..." autoHeight />' },
                         { name: "Video", icon: Globe, usage: '<Video src="..." />' },
                         { name: "Tabs", icon: Settings, usage: '<Tabs items={["A", "B"]}>...</Tabs>' }
                       ].map((comp) => (

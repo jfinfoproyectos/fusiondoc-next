@@ -18,7 +18,7 @@ export function DashboardContentWrapper({ children }: DashboardContentWrapperPro
       "flex-1 w-full transition-all duration-300",
       isDocEditor 
         ? "max-w-none px-0 py-0 overflow-hidden h-full" 
-        : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+        : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto custom-scrollbar h-full"
     )}>
       {children}
     </main>

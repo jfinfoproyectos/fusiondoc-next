@@ -62,7 +62,7 @@ export default async function DashboardLayout({
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
               >
                 <Files className="w-4 h-4" />
-                Documentaciones
+                Documentación
               </Link>
             </nav>
             <div className="flex items-center gap-2 ml-auto">

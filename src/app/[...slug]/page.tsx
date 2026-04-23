@@ -78,8 +78,8 @@ export default async function Page({ params }: PageProps) {
   const slugStr = slug.join('/');
 
   return (
-    <div className="flex w-full">
-      <div className="flex-1 min-w-0 py-4 md:py-8 px-4 sm:px-6 md:px-12 lg:px-16">
+    <div className="flex w-full h-full overflow-hidden">
+      <div id="main-content" className="flex-1 min-w-0 py-4 md:py-8 px-4 sm:px-6 md:px-12 lg:px-16 overflow-y-auto custom-scrollbar">
         {!docResult.fromCache && (
           <UpdateBanner sha={docResult.sha} slug={slugStr} />
         )}

@@ -1,6 +1,6 @@
 ---
 title: Embebidos de Código
-description: Cómo integrar entornos de ejecución interactivos como CodePen, CodeSandbox y StackBlitz.
+description: Integra entornos de ejecución interactivos como CodePen, CodeSandbox y StackBlitz con control total sobre altura y margen interno.
 icon: 'lucide:code-2'
 order: 7
 ---
@@ -11,54 +11,77 @@ El componente `<CodeEmbed />` permite integrar plataformas externas de ejecució
 
 ## Plataformas Soportadas
 
-Actualmente, el componente detecta automáticamente y optimiza los embeds para:
-- **CodePen**
-- **CodeSandbox**
-- **StackBlitz**
+El componente detecta automáticamente la plataforma y transforma la URL en un embed optimizado:
 
-## Características Premium
+- **CodePen** — demos de HTML, CSS y JavaScript
+- **CodeSandbox** — proyectos de React, Vue, Node.js
+- **StackBlitz** — entornos de desarrollo web completos
 
-- **Click to Load:** Por defecto, los embebidos no se cargan hasta que el usuario hace clic. Esto mejora drásticamente el rendimiento de la página y evita el rastreo innecesario de terceros hasta que sea necesario.
-- **Responsivo:** Se adapta automáticamente al ancho del contenedor.
-- **Detección Automática:** Solo necesitas pegar la URL normal del navegador, el componente se encarga de transformarla en una URL de "embed" válida.
+## Características
+
+- **Click to Load** — por defecto, el iframe no se carga hasta que el usuario hace clic, mejorando el rendimiento.
+- **Carga Automática** — usa `autoload` para mostrar la demo directamente sin esperar interacción.
+- **Altura adaptable** — usa `autoHeight` para una relación de aspecto 16:9, o `height="N"` para una altura fija en píxeles.
+- **Margen Interno** — usa `inset="N"` para añadir espacio entre el borde del componente y el contenido embebido.
+- **Detección Automática** — solo pega la URL normal del navegador.
 
 ## Ejemplos
 
-### CodePen
+### Carga Manual (Por Defecto)
 
-Ideal para demos rápidas de HTML/CSS/JS.
+El usuario hace clic para activar el entorno interactivo.
 
-<CodeEmbed 
-  url="https://codepen.io/challenges/pen/mdmByPe" 
+<CodeEmbed
+  url="https://codepen.io/challenges/pen/mdmByPe"
   title="Ejemplo de Animación en CodePen"
-  height={400}
+  height="400"
 />
 
-### CodeSandbox
+### Carga Automática
 
-Perfecto para proyectos de React, Vue o Node.js.
+Activa `autoload` para mostrar la demo sin interacción.
 
-<CodeEmbed 
-  url="https://codesandbox.io/s/react-new" 
-  height={600}
+<CodeEmbed
+  url="https://codepen.io/challenges/pen/mdmByPe"
+  title="Demo con Carga Automática"
+  autoHeight
+  autoload
 />
 
-### StackBlitz
+### Con Margen Interno
 
-La mejor opción para entornos de desarrollo web completos.
+Usa `inset="20"` para añadir un marco de aire alrededor de la demo.
 
-<CodeEmbed 
-  url="https://stackblitz.com/edit/react-ts-n8fzkr" 
-  height={600}
+<CodeEmbed
+  url="https://codepen.io/challenges/pen/mdmByPe"
+  title="Demo con margen interno"
+  autoHeight
+  inset="20"
+  autoload
+/>
+
+### Altura Fija
+
+Especifica la altura exacta en píxeles con `height="N"`.
+
+<CodeEmbed
+  url="https://codesandbox.io/s/react-new"
+  height="600"
 />
 
 ## Uso en MDX
 
-Puedes usar el componente de cualquiera de las siguientes formas:
-
 ````mdx
-{/* Forma estándar */}
-<CodeEmbed url="https://codepen.io/..." />
+{/* Altura automática (16:9) con carga inmediata y margen interno */}
+<CodeEmbed
+  url="https://stackblitz.com/edit/react-ts"
+  autoHeight
+  autoload
+  inset="20"
+/>
+
+{/* Altura fija */}
+<CodeEmbed url="https://codepen.io/..." height="500" />
 
 {/* Usando alias específicos */}
 <codepen url="https://codepen.io/..." />
@@ -66,13 +89,21 @@ Puedes usar el componente de cualquiera de las siguientes formas:
 <stackblitz url="https://stackblitz.com/..." />
 ````
 
+> [!IMPORTANT]
+> Los valores de `height` e `inset` deben escribirse **como strings** (con comillas), no como expresiones JSX numéricas.
+> ✅ `height="600"` `inset="20"`
+> ❌ `height={600}` `inset={20}`
+
 ## Propiedades
 
-| Prop | Tipo | Descripción |
-| :--- | :--- | :--- |
-| `url` | `string` | **Requerido**. La URL del proyecto o pen (URL normal de navegador). |
-| `height` | `number | string` | La altura del embebido en píxeles. (Default: `500`). |
-| `title` | `string` | Título descriptivo para accesibilidad y para la carátula de carga. |
+| Prop | Tipo | Default | Descripción |
+| :--- | :--- | :--- | :--- |
+| `url` | `string` | — | **Requerido.** URL del proyecto (URL normal del navegador). |
+| `height` | `string` | `"500"` | Altura del componente en píxeles. Solo aplica cuando `autoHeight` está desactivado. |
+| `autoHeight` | `boolean` | `false` | Adapta la altura automáticamente en relación 16:9. Ignora `height`. |
+| `inset` | `string` | `"0"` | Margen interno en píxeles entre el borde del componente y el contenido embebido. |
+| `autoload` | `boolean` | `false` | Si se activa, carga la demo inmediatamente sin esperar clic del usuario. |
+| `title` | `string` | — | Texto descriptivo para accesibilidad y para la carátula de carga. |
 
-> [!IMPORTANT]
-> El componente utiliza un sistema de "fachada" para no cargar el iframe hasta que el usuario interactúe con él. Esto asegura que tus páginas se mantengan rápidas incluso con múltiples ejemplos complejos.
+> [!TIP]
+> El componente utiliza un sistema de **"fachada"** (click-to-load) por defecto. Esto mantiene las páginas rápidas incluso con múltiples demos, ya que los iframes no se inicializan hasta que el usuario interactúa. Usa `autoload` solo cuando la demo sea el contenido principal de la sección.

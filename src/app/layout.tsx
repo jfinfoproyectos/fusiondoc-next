@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { headers } from "next/headers";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const robotoHeading = Roboto({
   subsets: ['latin'],
   weight: ['400', '500', '700'],

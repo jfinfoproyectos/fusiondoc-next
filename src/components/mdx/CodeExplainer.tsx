@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Children, isValidElement, useMemo, useRef, useEffect } from 'react';
+import React, { useState, Children, isValidElement, useMemo, useRef, useEffect, useId } from 'react';
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, FileCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +11,7 @@ interface FileData {
 }
 
 export function CodeExplainer({ children, className }: { children: React.ReactNode, className?: string }) {
+  const instanceId = useId().replace(/:/g, '-');
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   // Track step index for each file independently
   const [stepIndexes, setStepIndexes] = useState<number[]>([]);
@@ -134,7 +135,8 @@ export function CodeExplainer({ children, className }: { children: React.ReactNo
   return (
     <>
       <div className={cn(
-        "w-full my-6 rounded-lg overflow-hidden ring-1 ring-white/10 bg-[#0d1117] flex flex-col shadow-lg",
+        "code-explainer-root w-full my-6 rounded-lg overflow-hidden ring-1 ring-white/10 bg-[#0d1117] flex flex-col shadow-lg",
+        `ce-inst-${instanceId}`,
         isFullscreen && "!fixed !inset-4 !z-50 !my-0 !h-[calc(100vh-2rem)] !w-[calc(100vw-2rem)]",
         className
       )}>
@@ -168,20 +170,20 @@ export function CodeExplainer({ children, className }: { children: React.ReactNo
             "code-explainer-left"
           )}>
             <style suppressHydrationWarning>{`
-              .code-explainer-left .code-explainer-area [data-line] {
+              .ce-inst-${instanceId} .code-explainer-area [data-line] {
                   transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
                   opacity: 0.3;
                   scroll-margin-top: 3rem;
               }
               ${activeLineNumbers.map(line => `
-                .code-explainer-left .code-explainer-area [data-line]:nth-child(${line}) {
+                .ce-inst-${instanceId} .code-explainer-area [data-line]:nth-child(${line}) {
                   opacity: 1 !important;
                   background-color: color-mix(in srgb, var(--primary) 15%, transparent) !important;
                   box-shadow: inset 4px 0 0 0 var(--primary);
                 }
               `).join('\n')}
               ${activeLineNumbers.length === 0 ? `
-                .code-explainer-left .code-explainer-area [data-line] { opacity: 1; }
+                .ce-inst-${instanceId} .code-explainer-area [data-line] { opacity: 1; }
               ` : ''}
             `}</style>
 

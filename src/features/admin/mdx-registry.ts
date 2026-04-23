@@ -398,6 +398,30 @@ Ideal para ejemplos multi-lenguaje.
 **Iconos Disponibles:**
 Usa identificadores de **Iconify** (ej: \`vscode-icons:file-type-js\`).`
   },
+  {
+    id: "CodeEmbed",
+    title: "Demo Interactiva (Embed)",
+    category: "Multimedia",
+    description: "Incrusta editores vivos de CodePen, CodeSandbox o StackBlitz.",
+    iconName: "Code2",
+    props: [
+      { name: "url", label: "URL de la Demo", type: "text", default: "https://codepen.io/ge1doot/pen/GGRqpw", description: "URL directa del editor o demo." },
+      { name: "height", label: "Altura (px)", type: "number", default: 500, description: "Solo si Altura Automática está desactivada." },
+      { name: "autoHeight", label: "Altura Automática", type: "boolean", default: false, description: "Si se activa, ignora la altura en px y usa un ratio proporcional (16:9)." },
+      { name: "inset", label: "Margen Interno (px)", type: "number", default: 0, description: "Espacio entre el borde del componente y el contenido embebido." },
+      { name: "autoload", label: "Carga Automática", type: "boolean", default: false, description: "Si se activa, carga la demo inmediatamente sin esperar clic." },
+      { name: "title", label: "Título", type: "text", placeholder: "Ej: Playground de React" },
+    ],
+    template: (p) => `<CodeEmbed url="${p.url}" ${p.autoHeight ? 'autoHeight' : `height="${p.height}"`}${p.inset > 0 ? ` inset="${p.inset}"` : ""}${p.autoload ? " autoload" : ""}${p.title ? ` title="${p.title}"` : ""} />`,
+    helpMarkdown: `### Demos Interactivas
+FusionDoc detecta automáticamente la plataforma y aplica el modo "Embed" optimizado.
+
+**Plataformas Soportadas:**
+- **CodePen**: Muestra el resultado y el código editable.
+- **CodeSandbox**: Carga el entorno de desarrollo con VS Code online.
+- **StackBlitz**: Ideal para proyectos de Node.js o frameworks modernos.`
+  },
+
 
   // --- INTERACTIVOS ---
   {

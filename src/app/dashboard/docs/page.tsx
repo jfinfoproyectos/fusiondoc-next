@@ -24,7 +24,7 @@ import { CreateProjectDialog } from "@/features/admin/CreateProjectDialog";
 import { Toaster } from "@/components/ui/sonner";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Documentaciones | Panel" };
+export const metadata = { title: "Documentación | Panel" };
 
 export default async function DocsScannerPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -56,7 +56,7 @@ export default async function DocsScannerPage() {
       <Toaster />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic">Documentaciones</h1>
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">Documentación</h1>
           <p className="text-muted-foreground font-medium">
             Listado de todos los proyectos de documentación detectados. Gestiona la visibilidad y edita el contenido.
           </p>

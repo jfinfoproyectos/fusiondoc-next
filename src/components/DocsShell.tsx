@@ -15,7 +15,7 @@ export default function DocsShell({ children, projects, subdomainMode }: DocsShe
   const hasFooter = true; // El footer es ahora permanente en el layout global
   
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <Header projects={projects} subdomainMode={subdomainMode} />
       <TopicsBar projects={projects} subdomainMode={subdomainMode} />
       
@@ -24,7 +24,7 @@ export default function DocsShell({ children, projects, subdomainMode }: DocsShe
         <Sidebar projects={projects} subdomainMode={subdomainMode} />
         
         {/* Main container with no scroll - children will scroll themselves */}
-        <main className={cn("flex-1 w-full min-w-0 flex flex-row", hasFooter && "pb-12")}>
+        <main className="flex-1 w-full min-w-0 flex flex-row">
           {children}
         </main>
       </div>

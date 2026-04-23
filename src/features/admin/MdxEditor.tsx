@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { ComponentAssist } from "./ComponentAssist";
+import { FrontmatterAssist } from "./FrontmatterAssist";
+import { toast } from "sonner";
 
 interface MdxEditorProps {
   content: string;
@@ -189,10 +192,16 @@ export function MdxEditor({ content, onChange }: MdxEditorProps) {
           </div>
 
           {/* Group: Media & Misc */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 pr-1 mr-1 border-r border-white/10">
             <FormatButton icon={<LinkIcon className="w-4 h-4" />} label="Enlace" onClick={() => handleFormat("[", "](url)", "titulo")} />
             <FormatButton icon={<ImageIcon className="w-4 h-4" />} label="Imagen" onClick={() => handleFormat("![", "](url)", "alt")} />
             <FormatButton icon={<Minus className="w-4 h-4" />} label="Línea Divisoria" onClick={() => handleInsert("\n---\n")} />
+          </div>
+
+          {/* Group: Assistants */}
+          <div className="flex items-center gap-0.5">
+            <FrontmatterAssist currentContent={content} onApply={onChange} />
+            <ComponentAssist onInsert={handleInsert} />
           </div>
         </TooltipProvider>
       </div>
