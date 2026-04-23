@@ -33,7 +33,10 @@ export async function getProjectFileTree(projectId: string): Promise<FileNode[]>
   const treeData = await getGitTree();
   if (!treeData) return [];
 
-  const projectPrefix = `${GITHUB_CONFIG.docsPath}/${projectId}/`;
+  // Decode projectId in case it comes URL encoded (common with accents like 'móviles')
+  const decodedId = decodeURIComponent(projectId);
+  const projectPrefix = `${GITHUB_CONFIG.docsPath}/${decodedId}/`;
+  
   const projectItems = treeData.tree.filter(item => item.path.startsWith(projectPrefix));
 
   const root: FileNode[] = [];

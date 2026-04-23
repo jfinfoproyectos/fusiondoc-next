@@ -216,7 +216,8 @@ export const getAvailableProjects = cache(async function(): Promise<{ id: string
 
 export async function getTopics(version?: string): Promise<{ title: string; slug: string; order: number; icon?: string }[]> {
   const projects = await getAvailableProjects();
-  const effectiveVersion = version || (projects.length > 0 ? projects[0].id : undefined);
+  const decodedVersion = version ? decodeURIComponent(version) : undefined;
+  const effectiveVersion = decodedVersion || (projects.length > 0 ? projects[0].id : undefined);
   
   const treeData = await getGitTree();
   if (!treeData) return [];
@@ -273,14 +274,16 @@ export async function getTopics(version?: string): Promise<{ title: string; slug
 
 export const getNavigation = cache(async function(activeTopic?: string, version?: string): Promise<NavGroup[]> {
   const projects = await getAvailableProjects();
-  const effectiveVersion = version || (projects.length > 0 ? projects[0].id : undefined);
+  const decodedVersion = version ? decodeURIComponent(version) : undefined;
+  const decodedTopic = activeTopic ? decodeURIComponent(activeTopic) : undefined;
+  const effectiveVersion = decodedVersion || (projects.length > 0 ? projects[0].id : undefined);
   
   try {
     const treeData = await getGitTree();
     if (!treeData) return [];
 
     const effectiveDocsPath = effectiveVersion ? `${GITHUB_CONFIG.docsPath}/${effectiveVersion}` : GITHUB_CONFIG.docsPath;
-    const basePath = activeTopic ? `${effectiveDocsPath}/${activeTopic}/` : `${effectiveDocsPath}/`;
+    const basePath = decodedTopic ? `${effectiveDocsPath}/${decodedTopic}/` : `${effectiveDocsPath}/`;
     
     const mdFiles = treeData.tree.filter(item => 
       item.type === 'blob' && 
@@ -370,8 +373,9 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   let docResult: DocResult | null = null;
   let isIndex = false;
 
+  const decodedSlugArray = slugArray.map(s => decodeURIComponent(s));
   let version = "";
-  let realSlugArray = [...slugArray];
+  let realSlugArray = [...decodedSlugArray];
 
   const projects = await getAvailableProjects();
 
