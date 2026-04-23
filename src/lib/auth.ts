@@ -10,6 +10,9 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
 
+  // URL base para redirecciones (crítico para Vercel)
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+
   // Configuración de email y contraseña
   emailAndPassword: {
     enabled: true,
@@ -49,8 +52,9 @@ export const auth = betterAuth({
     admin({ defaultRole: "user" }),
   ],
 
-  // trustedOrigins: [
-  //   "http://localhost:3000",
-  //   process.env.NEXT_PUBLIC_APP_URL || "",
-  // ].filter(Boolean),
+  trustedOrigins: [
+    "http://localhost:3000",
+    process.env.BETTER_AUTH_URL || "",
+    process.env.NEXT_PUBLIC_APP_URL || "",
+  ].filter(Boolean),
 });
