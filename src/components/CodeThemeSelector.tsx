@@ -15,7 +15,7 @@ import {
 import { setCodeTheme } from "@/app/actions/code-themes";
 import { cn } from "@/lib/utils";
 
-const SHIKI_THEMES = [
+export const SHIKI_THEMES = [
   { id: "github-dark", name: "GitHub Dark" },
   { id: "github-light", name: "GitHub Light" },
   { id: "dracula", name: "Dracula" },

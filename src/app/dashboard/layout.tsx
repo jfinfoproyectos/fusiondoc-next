@@ -5,14 +5,11 @@ import Link from "next/link";
 import { FileText, Users, LogOut, Settings, LayoutDashboard, Files } from "lucide-react";
 import { signOut } from "@/lib/auth-client";
 import DashboardNav from "@/features/dashboard/DashboardNav";
-import { ModeToggle } from "@/components/mode-toggle";
-import { CreditsButton } from "@/components/CreditsButton";
+import { ConfigControls } from "@/components/ConfigControls";
 import { getAvailableThemes } from "@/app/actions/themes";
-import { ThemeSelector } from "@/components/ThemeSelector";
-import { SITE_CONFIG } from "@/config";
+import { getSiteConfig } from "@/config";
 import { DashboardContentWrapper } from "@/features/dashboard/DashboardContentWrapper";
 import { getCodeTheme } from "@/app/actions/code-themes";
-import { CodeThemeSelector } from "@/components/CodeThemeSelector";
 
 export default async function DashboardLayout({
   children,
@@ -21,9 +18,10 @@ export default async function DashboardLayout({
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   const availableThemes = await getAvailableThemes();
+  const siteConfig = await getSiteConfig();
 
   // If Auth/DB is disabled, redirect to home
-  if (!SITE_CONFIG.enableAuthDb) {
+  if (!siteConfig.enableAuthDb) {
     redirect("/");
   }
 
@@ -64,19 +62,26 @@ export default async function DashboardLayout({
                 <Files className="w-4 h-4" />
                 Documentación
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/dashboard/settings"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                >
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </Link>
+              )}
             </nav>
             <div className="flex items-center gap-2 ml-auto">
-                <div className="flex items-center gap-1.5 md:gap-2 mr-1">
-                  {!SITE_CONFIG.defaultAppearance && <ModeToggle />}
-                  {!SITE_CONFIG.defaultTheme && (
-                    <ThemeSelector themes={availableThemes} defaultTheme={SITE_CONFIG.defaultTheme} />
-                  )}
-                  {!SITE_CONFIG.defaultCodeTheme && (
-                    <CodeThemeSelector currentTheme={currentCodeTheme} />
-                  )}
+                <div className="mr-1">
+                  <ConfigControls 
+                    availableThemes={availableThemes} 
+                    currentCodeTheme={currentCodeTheme} 
+                    siteConfig={siteConfig} 
+                  />
                 </div>
                {/* User menu */}
-               <DashboardNav user={session.user} isAdmin={isAdmin} themes={availableThemes} />
+               <DashboardNav user={session.user} isAdmin={isAdmin} themes={availableThemes} siteConfig={siteConfig} />
             </div>
           </div>
         </div>

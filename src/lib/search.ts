@@ -1,6 +1,6 @@
 import { create, insert, search, type AnyOrama } from '@orama/orama';
 import { getGitTree, getFileContent, getAvailableProjects } from './github';
-import { GITHUB_CONFIG } from '@/config';
+import { getGithubConfig } from '@/config';
 import matter from 'gray-matter';
 
 let oramaDb: AnyOrama | null = null;
@@ -84,14 +84,15 @@ async function indexRemoteDocs(db: AnyOrama) {
   const treeData = await getGitTree();
   if (!treeData) return;
 
-  const docsPath = GITHUB_CONFIG.docsPath || 'docs';
+  const githubConfig = await getGithubConfig();
+  const docsPath = githubConfig.docsPath || 'docs';
   const mdFiles = treeData.tree.filter(item => 
     item.type === 'blob' && 
     item.path.startsWith(`${docsPath}/`) &&
     item.path.endsWith('.md')
   );
 
-  const projects = await getAvailableProjects();
+  const { projects } = await getAvailableProjects();
   const BATCH_SIZE = 15; 
   
   for (let i = 0; i < mdFiles.length; i += BATCH_SIZE) {

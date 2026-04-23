@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -12,43 +7,57 @@ datasource db {
   provider = "postgresql"
 }
 
+model SystemSetting {
+  id                   Int      @id @default(1)
+  githubToken          String?
+  githubOwner          String?  @default("jfinfotest")
+  githubRepo           String?  @default("prueba_doc")
+  githubBranch         String?  @default("main")
+  githubDocsPath       String?  @default("docs")
+  siteTitle            String?  @default("FusionDoc")
+  siteLogo             String?  @default("lucide:package")
+  footerText           String?  @default("© 2026 FusionDoc")
+  socialLinks          String?  @default("[]")
+  defaultTheme         String?  @default("cyberpunk")
+  defaultAppearance    String?  @default("dark")
+  defaultCodeTheme     String?  @default("one-dark-pro")
+  forceDefaultSettings Boolean  @default(false)
+  updatedAt            DateTime @updatedAt
+
+  @@map("system_setting")
+}
+
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-
-  role String? // "admin", "user"
-
-  banned     Boolean?  @default(false)
-  banReason  String?
-  banExpires DateTime?
-
+  id               String            @id
+  name             String
+  email            String            @unique
+  emailVerified    Boolean           @default(false)
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  banExpires       DateTime?
+  banReason        String?
+  banned           Boolean?          @default(false)
+  role             String?
+  accounts         Account[]
   groupMemberships GroupMembership[]
+  sessions         Session[]
 
-  @@unique([email])
   @@map("user")
 }
 
 model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
   impersonatedBy String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -58,7 +67,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -68,6 +76,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
@@ -85,20 +94,17 @@ model Verification {
   @@map("verification")
 }
 
-// ─── Group Management ──────────────────────────────────────────────────────────
-
 model Group {
-  id                   String            @id @default(cuid())
-  name                 String
-  description          String?
-  registrationOpen     Boolean           @default(true)
-  startDate            DateTime?
-  endDate              DateTime?
-  docFolders           String[]          // IDs de carpetas de docs asignadas (ej: ["FusionDoc", "Python"])
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-
-  memberships GroupMembership[]
+  id               String            @id @default(cuid())
+  name             String
+  description      String?
+  registrationOpen Boolean           @default(true)
+  startDate        DateTime?
+  endDate          DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  docFolders       String[]
+  memberships      GroupMembership[]
 
   @@map("group")
 }
@@ -106,12 +112,12 @@ model Group {
 model GroupMembership {
   id        String           @id @default(cuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   groupId   String
-  group     Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
   status    MembershipStatus @default(PENDING)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+  group     Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
   @@index([groupId])
@@ -119,11 +125,8 @@ model GroupMembership {
   @@map("group_membership")
 }
 
-
-// ─── Documentation Projects ──────────────────────────────────────────────────
-
 model DocProject {
-  id        String   @id // El folder/slug (ej: "Python", "FusionDoc")
+  id        String   @id
   isPublic  Boolean  @default(false)
   updatedAt DateTime @updatedAt
 

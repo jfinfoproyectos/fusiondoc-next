@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
     subdomain = '';
   }
 
-  const projectId = subdomain || url.pathname.split('/')[1];
+  const projectId = decodeURIComponent(subdomain || url.pathname.split('/')[1]);
   
   // Si no hay proyecto identificado (ej. root /), dejar pasar
   if (!projectId || projectId === '') {
@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
     // 3. Verificación de Curso Público (Frontmatter)
     // Obtenemos los proyectos para saber si este es público
     const { getAvailableProjects } = await import('@/lib/github');
-    const projects = await getAvailableProjects();
+    const { projects } = await getAvailableProjects();
     const project = projects.find(p => p.id === projectId);
     
     // Si el proyecto es público, ignorar login y grupos

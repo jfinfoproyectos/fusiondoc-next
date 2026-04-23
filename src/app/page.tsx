@@ -7,19 +7,21 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { CreditsButton } from '@/components/CreditsButton';
 import { getAvailableThemes } from "@/app/actions/themes";
 import { ThemeSelector } from "@/components/ThemeSelector";
-import { SITE_CONFIG } from "@/config";
+import { getSiteConfig } from "@/config";
 import { getAvailableProjects } from '@/lib/github';
 import { getOrBuildSearchIndex } from '@/lib/search';
 import { redirect } from 'next/navigation';
 import { getCodeTheme } from '@/app/actions/code-themes';
 import { CodeThemeSelector } from '@/components/CodeThemeSelector';
 
+import { GitHubErrorModal } from '@/components/GitHubErrorModal';
+
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
   const availableThemes = await getAvailableThemes();
-  const allProjects = await getAvailableProjects();
+  const { projects: allProjects, error: githubError } = await getAvailableProjects();
   const publicProjects = allProjects.filter(p => p.isPublic);
   const isAuthenticated = !!session;
   const currentCodeTheme = await getCodeTheme();
@@ -28,7 +30,8 @@ export default async function HomePage() {
   void getOrBuildSearchIndex();
 
   // Public Mode Redirection
-  if (!SITE_CONFIG.enableAuthDb) {
+  const siteConfig = await getSiteConfig();
+  if (!siteConfig.enableAuthDb) {
     if (allProjects.length === 1) {
       redirect(`/${allProjects[0].id}`);
     }
@@ -36,6 +39,7 @@ export default async function HomePage() {
 
   return (
     <div className="relative min-h-screen w-full bg-background overflow-hidden flex flex-col">
+      <GitHubErrorModal errorType={githubError} />
       {/* ─── Elementos de Fondo Abstractos ─────────────────────────────────── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow" />
@@ -62,15 +66,15 @@ export default async function HomePage() {
 
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             <div className="flex items-center gap-2 mr-2">
-              {!SITE_CONFIG.defaultTheme && (
-                <ThemeSelector themes={availableThemes} defaultTheme={SITE_CONFIG.defaultTheme} />
+              {!siteConfig.forceDefaultSettings && (
+                <>
+                  <ThemeSelector themes={availableThemes} defaultTheme={siteConfig.defaultTheme} forceDefaultSettings={siteConfig.forceDefaultSettings} />
+                  <CodeThemeSelector currentTheme={currentCodeTheme} />
+                  <ModeToggle />
+                </>
               )}
-              {!SITE_CONFIG.defaultCodeTheme && (
-                <CodeThemeSelector currentTheme={currentCodeTheme} />
-              )}
-              {!SITE_CONFIG.defaultAppearance && <ModeToggle />}
             </div>
-            {SITE_CONFIG.enableAuthDb && (
+            {siteConfig.enableAuthDb && (
               !isAuthenticated ? (
                 <Link 
                   href="/signin" 
@@ -112,13 +116,13 @@ export default async function HomePage() {
 
         {/* Descripción */}
         <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-12 font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200">
-          {SITE_CONFIG.enableAuthDb 
+          {siteConfig.enableAuthDb 
             ? "Centraliza la documentación técnica de todos tus proyectos bajo una capa de seguridad robusta basada en grupos. Sincronización dinámica y despliegue instantáneo."
             : "Centraliza y publica tu documentación técnica directamente desde Markdown. Navega por nuestros proyectos y descubre guías detalladas listas para usar."}
         </p>
 
         {/* Call to Action Principal */}
-        {SITE_CONFIG.enableAuthDb ? (
+        {siteConfig.enableAuthDb ? (
           <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
             {!isAuthenticated ? (
               <Link 
@@ -173,8 +177,6 @@ export default async function HomePage() {
                  <Link 
                    key={project.id} 
                    href={`/${project.id}`}
-                   target="_blank"
-                   rel="noopener noreferrer"
                    className="group p-8 rounded-[2.5rem] bg-card/40 border border-border/50 backdrop-blur-xl hover:border-primary/40 hover:bg-card/60 transition-all duration-500 shadow-sm hover:shadow-2xl hover:shadow-primary/5 flex flex-col items-center text-center overflow-hidden relative w-full sm:w-[400px] min-h-[300px]"
                  >
                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity scale-150 rotate-12">

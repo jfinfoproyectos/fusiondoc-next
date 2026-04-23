@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getEffectiveProject } from '@/lib/version-utils';
 import DynamicIcon from '@/components/DynamicIcon';
-import { SITE_CONFIG } from '@/config';
+
 
 export default function HeaderTitle({ 
-  projects 
+  projects,
+  siteConfig
 }: { 
-  projects: { id: string, name: string }[] 
+  projects: { id: string, name: string }[],
+  siteConfig: any
 }) {
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -28,10 +30,10 @@ export default function HeaderTitle({
       className={`font-bold text-lg md:text-xl text-primary flex items-center gap-2 shrink-0 ml-2 md:ml-0 group transition-opacity duration-300 ${!mounted ? 'opacity-70' : 'opacity-100'}`}
     >
       <div className={`w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:rotate-12 transition-transform duration-300 ${!mounted ? '' : ''}`}>
-        <DynamicIcon icon={SITE_CONFIG.logo} width="18" height="18" />
+        <DynamicIcon icon={siteConfig.logo} width="18" height="18" />
       </div>
       <span className="hidden sm:inline-block tracking-tighter uppercase font-black">
-        {SITE_CONFIG.title}
+        {siteConfig.title}
       </span>
     </Link>
   );

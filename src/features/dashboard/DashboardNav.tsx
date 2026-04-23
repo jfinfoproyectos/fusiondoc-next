@@ -13,13 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Shield, User, Menu, X, Users, LayoutDashboard } from "lucide-react";
+import { LogOut, Shield, User, Menu, X, Users, LayoutDashboard, Settings } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
 import { CreditsButton } from "@/components/CreditsButton";
 import { ThemeSelector, ThemeInfo } from "@/components/ThemeSelector";
-import { SITE_CONFIG } from "@/config";
+
 
 interface DashboardNavProps {
   user: {
@@ -31,6 +31,7 @@ interface DashboardNavProps {
   };
   isAdmin: boolean;
   themes: ThemeInfo[];
+  siteConfig: any;
 }
 
 function getInitials(name: string) {
@@ -41,7 +42,7 @@ function getInitials(name: string) {
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
-export default function DashboardNav({ user, isAdmin, themes }: DashboardNavProps) {
+export default function DashboardNav({ user, isAdmin, themes, siteConfig }: DashboardNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
@@ -85,6 +86,14 @@ export default function DashboardNav({ user, isAdmin, themes }: DashboardNavProp
                 Mis Grupos
               </Link>
             </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings" className="flex items-center gap-2 font-bold text-primary">
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive cursor-pointer"
@@ -145,11 +154,21 @@ export default function DashboardNav({ user, isAdmin, themes }: DashboardNavProp
                 <Users className="w-4 h-4" />
                 Grupos
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/dashboard/settings"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary hover:bg-primary/5 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </Link>
+              )}
             </nav>
 
             <div className="flex items-center gap-4 px-3 py-4 border-t border-border/50 mt-auto">
               <div className="flex items-center gap-2">
-                <ThemeSelector themes={themes} defaultTheme={SITE_CONFIG.defaultTheme} />
+                <ThemeSelector themes={themes} defaultTheme={siteConfig.defaultTheme} />
                 <ModeToggle />
               </div>
               <div className="flex flex-col ml-1">

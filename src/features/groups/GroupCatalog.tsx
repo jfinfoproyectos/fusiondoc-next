@@ -137,8 +137,6 @@ export function GroupCatalog({ groups }: { groups: GroupWithMembership[] }) {
                                <Link
                                  key={doc.id}
                                  href={`/${doc.id}`}
-                                 target="_blank"
-                                 rel="noopener noreferrer"
                                  className="flex items-center justify-between gap-3 px-5 py-4 rounded-3xl bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/30 transition-all group/docinfo shadow-sm"
                                >
                                  {content}

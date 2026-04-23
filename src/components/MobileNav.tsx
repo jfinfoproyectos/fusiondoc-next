@@ -14,16 +14,18 @@ import { Button } from "@/components/ui/button";
 import SidebarNav from './SidebarNav';
 import { NavGroup } from '@/lib/github';
 import { getEffectiveProject, getTopicFromPath } from '@/lib/version-utils';
-import { SITE_CONFIG } from '@/config';
+
 import DynamicIcon from './DynamicIcon';
 import Link from 'next/link';
 
 export default function MobileNav({ 
   projects, 
-  subdomainMode 
+  subdomainMode,
+  siteConfig
 }: { 
   projects: { id: string, name: string }[], 
-  subdomainMode: boolean 
+  subdomainMode: boolean,
+  siteConfig: any
 }) {
   const pathname = usePathname();
   const [navItems, setNavItems] = useState<NavGroup[]>([]);
@@ -82,8 +84,8 @@ export default function MobileNav({
         <SheetHeader className="p-4 border-b border-border">
           <SheetTitle>
             <Link href="/" className="flex items-center gap-2 font-bold text-primary">
-              <DynamicIcon icon={SITE_CONFIG.logo} width="20" height="20" />
-              {SITE_CONFIG.title}
+              <DynamicIcon icon={siteConfig.logo} width="20" height="20" />
+              {siteConfig.title}
             </Link>
           </SheetTitle>
         </SheetHeader>

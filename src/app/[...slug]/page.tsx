@@ -5,7 +5,7 @@ import RightSidebar from '@/components/RightSidebar';
 import UpdateBanner from '@/components/UpdateBanner';
 import NavigationGrid from '@/components/NavigationGrid';
 import { notFound, redirect } from 'next/navigation';
-import { SITE_CONFIG } from '@/config';
+
 import DocsShell from '@/components/DocsShell';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
@@ -22,23 +22,23 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = rawSlug?.map(s => decodeURIComponent(s)) || [];
 
-  if (!slug || slug.length === 0) {
+  if (slug.length === 0) {
     return notFound();
   }
 
   // Las verificaciones de Auth y Acceso por Grupo ya se manejan en el middleware (proxy.ts)
   // El middleware reescribe a /project/access-denied si el usuario no tiene permiso.
-  const projects = await getAvailableProjects();
+  const { projects } = await getAvailableProjects();
   const headersList = await headers();
   const subdomainMode = !!headersList.get('x-project-id');
 
   // Determinar el projectId (folder de primer nivel en /docs)
-  const decodedSlug = slug.map(s => decodeURIComponent(s));
-  const projectId = projects.some(p => p.id === decodedSlug[0])
-    ? decodedSlug[0]
-    : projects[0]?.id ?? decodedSlug[0];
+  const projectId = projects.some(p => p.id === slug[0])
+    ? slug[0]
+    : projects[0]?.id ?? slug[0];
 
   // Si el middleware nos mandó aquí por falta de acceso
   if (slug[slug.length - 1] === "access-denied") {

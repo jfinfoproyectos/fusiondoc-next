@@ -6,9 +6,10 @@ import { ThemeInfo } from "@/app/actions/themes";
 interface ThemeHydratorProps {
   themes: ThemeInfo[];
   defaultTheme?: string | null;
+  forceDefaultSettings?: boolean;
 }
 
-export function ThemeHydrator({ themes, defaultTheme }: ThemeHydratorProps) {
+export function ThemeHydrator({ themes, defaultTheme, forceDefaultSettings }: ThemeHydratorProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,14 +21,15 @@ export function ThemeHydrator({ themes, defaultTheme }: ThemeHydratorProps) {
 
     // Listen for custom change events from ThemeSelector to update immediately
     const handleThemeChange = (e?: Event) => {
-      // If a default is forced in .env, IGNORE any change attempt
-      if (defaultTheme) {
+      const detail = (e as CustomEvent)?.detail;
+      const savedTheme = detail || localStorage.getItem("fusiondoc-theme") || "default";
+
+      // If a default is forced and NO specific event detail is provided, use the forced default
+      if (forceDefaultSettings && defaultTheme && !detail) {
         applyTheme(defaultTheme);
         return;
       }
 
-      const detail = (e as CustomEvent)?.detail;
-      const savedTheme = detail || localStorage.getItem("fusiondoc-theme") || "default";
       applyTheme(savedTheme);
     };
 

@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import TopicsBar from "@/components/TopicsBar";
 import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
-import { SITE_CONFIG } from "@/config";
+
 
 interface DocsShellProps {
   children: React.ReactNode;

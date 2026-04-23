@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAvailableProjects } from "@/lib/github";
-import { GITHUB_CONFIG } from "@/config";
+import { getGithubConfig } from "@/config";
 import {
   Table,
   TableBody,
@@ -22,6 +22,7 @@ import Link from "next/link";
 import { DocStatusToggle } from "@/components/DocStatusToggle";
 import { CreateProjectDialog } from "@/features/admin/CreateProjectDialog";
 import { Toaster } from "@/components/ui/sonner";
+import { GitHubErrorModal } from "@/components/GitHubErrorModal";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Documentación | Panel" };
@@ -44,16 +45,19 @@ export default async function DocsScannerPage() {
     );
   }
 
-  const projects = await getAvailableProjects();
+  const { projects, error: githubError } = await getAvailableProjects();
+
+  const githubConfig = await getGithubConfig();
 
   const buildGithubUrl = (id: string) => {
-    const { owner, repo, branch, docsPath } = GITHUB_CONFIG;
+    const { owner, repo, branch, docsPath } = githubConfig;
     return `https://github.com/${owner}/${repo}/tree/${branch}/${docsPath}/${id}`;
   };
 
   return (
     <div className="space-y-6">
       <Toaster />
+      <GitHubErrorModal errorType={githubError} />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-black tracking-tighter uppercase italic">Documentación</h1>

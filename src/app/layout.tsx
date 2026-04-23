@@ -19,15 +19,18 @@ const inter = Inter({
   variable: "--font-sans"
 });
 
-import { SITE_CONFIG } from "@/config";
+import { getSiteConfig } from "@/config";
 
-export const metadata: Metadata = {
-  title: {
-    template: `%s | ${SITE_CONFIG.title}`,
-    default: SITE_CONFIG.title,
-  },
-  description: "Documentación estática generada desde GitHub",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteConfig = await getSiteConfig();
+  return {
+    title: {
+      template: `%s | ${siteConfig.title}`,
+      default: siteConfig.title,
+    },
+    description: "Documentación estática generada desde GitHub",
+  };
+}
 
 import DynamicIcon from '@/components/DynamicIcon';
 
@@ -43,12 +46,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const currentYear = 2026;
+  const siteConfig = await getSiteConfig();
   const availableThemes = await getAvailableThemes();
   
   // Determine active theme on the server
   const cookieStore = await cookies();
   const themeFromCookie = cookieStore.get("fusiondoc-theme")?.value;
-  const activeThemeId = SITE_CONFIG.defaultTheme || themeFromCookie || "default";
+  
+  const activeThemeId = siteConfig.forceDefaultSettings 
+    ? (siteConfig.defaultTheme || "default")
+    : (themeFromCookie || siteConfig.defaultTheme || "default");
   
   const activeThemeData = availableThemes.find(t => t.id === activeThemeId);
   const serverSideStyles = activeThemeData ? activeThemeData.cssContent 
@@ -97,12 +104,12 @@ export default async function RootLayout({
       <body
         className="antialiased h-full overflow-hidden bg-background text-foreground flex flex-col font-sans"
       >
-        <ThemeHydrator themes={availableThemes} defaultTheme={SITE_CONFIG.defaultTheme} />
+        <ThemeHydrator themes={availableThemes} defaultTheme={siteConfig.defaultTheme} forceDefaultSettings={siteConfig.forceDefaultSettings} />
         <ThemeProvider
           attribute="class"
-          defaultTheme={SITE_CONFIG.defaultAppearance || "system"}
-          forcedTheme={SITE_CONFIG.defaultAppearance || undefined}
-          enableSystem={!SITE_CONFIG.defaultAppearance}
+          defaultTheme={siteConfig.defaultAppearance || "system"}
+          forcedTheme={siteConfig.forceDefaultSettings ? (siteConfig.defaultAppearance || undefined) : undefined}
+          enableSystem={!siteConfig.forceDefaultSettings && !siteConfig.defaultAppearance}
           disableTransitionOnChange
         >
           <div

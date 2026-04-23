@@ -1,4 +1,4 @@
-import { GITHUB_CONFIG } from '@/config';
+import { getGithubConfig } from '@/config';
 import { getGitTree, GithubTreeItem } from './github';
 
 export interface FileNode {
@@ -35,7 +35,8 @@ export async function getProjectFileTree(projectId: string): Promise<FileNode[]>
 
   // Decode projectId in case it comes URL encoded (common with accents like 'móviles')
   const decodedId = decodeURIComponent(projectId);
-  const projectPrefix = `${GITHUB_CONFIG.docsPath}/${decodedId}/`;
+  const githubConfig = await getGithubConfig();
+  const projectPrefix = `${githubConfig.docsPath}/${decodedId}/`;
   
   const projectItems = treeData.tree.filter(item => item.path.startsWith(projectPrefix));
 
@@ -93,7 +94,8 @@ export async function getProjectFileTree(projectId: string): Promise<FileNode[]>
  * Obtiene el contenido de un archivo
  */
 export async function readFileContent(path: string): Promise<{ content: string; sha: string }> {
-  const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}?ref=${GITHUB_CONFIG.branch}`;
+  const githubConfig = await getGithubConfig();
+  const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}?ref=${githubConfig.branch}`;
   
   const res = await fetch(url, {
     cache: 'no-store',
@@ -113,12 +115,13 @@ export async function readFileContent(path: string): Promise<{ content: string; 
  * Guarda o crea un archivo en GitHub
  */
 export async function saveFileContent(path: string, content: string, sha?: string): Promise<string> {
-  const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+  const githubConfig = await getGithubConfig();
+  const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}`;
   
   const body: any = {
     message: `Docs: ${sha ? 'Update' : 'Create'} ${path.split('/').pop()}`,
     content: Buffer.from(content).toString('base64'),
-    branch: GITHUB_CONFIG.branch
+    branch: githubConfig.branch
   };
 
   if (sha) body.sha = sha;
@@ -142,12 +145,13 @@ export async function saveFileContent(path: string, content: string, sha?: strin
  * Elimina un archivo o carpeta (recursivo es complejo en Git, por ahora archivos individuales)
  */
 export async function deleteItem(path: string, sha: string): Promise<void> {
-  const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+  const githubConfig = await getGithubConfig();
+  const url = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${path}`;
   
   const body = {
     message: `Docs: Delete ${path.split('/').pop()}`,
     sha: sha,
-    branch: GITHUB_CONFIG.branch
+    branch: githubConfig.branch
   };
 
   const res = await fetch(url, {
@@ -167,7 +171,8 @@ export async function deleteItem(path: string, sha: string): Promise<void> {
  */
 export async function initNewProject(name: string): Promise<string> {
   const projectId = name.replace(/\s+/g, '-').toLowerCase();
-  const filePath = `${GITHUB_CONFIG.docsPath}/${projectId}/index.md`;
+  const githubConfig = await getGithubConfig();
+  const filePath = `${githubConfig.docsPath}/${projectId}/index.md`;
   
   const content = `---\ntitle: ${name}\ndescription: Documentación creada vía GitHub Admin Panel\nicon: lucide:book\norder: 1\n---`;
   

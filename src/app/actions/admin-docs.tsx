@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import matter from "gray-matter";
 import * as adminService from "../../lib/admin-docs";
 import MarkdownRenderer from "../../components/MarkdownRenderer";
-import { GITHUB_CONFIG } from "../../config";
+import { getGithubConfig } from "../../config";
 import React from "react";
 
 async function verifyAdmin() {
@@ -38,7 +38,8 @@ export async function createItemAction(parentPath: string, name: string, type: '
   await verifyAdmin();
   
   // Normalizar el parentPath asegurando que tenga el prefijo de la carpeta de docs de GitHub
-  const docsPath = GITHUB_CONFIG.docsPath;
+  const githubConfig = await getGithubConfig();
+  const docsPath = githubConfig.docsPath;
   const normalizedParent = parentPath.startsWith(docsPath + '/') 
     ? parentPath 
     : `${docsPath}/${parentPath}`;
@@ -113,14 +114,14 @@ export async function renderMdxPreviewAction(content: string) {
   }
 
   return (
-    <>
+    <div className="mdx-preview-root">
       {displayTitle && (
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground mb-6 md:mb-8">
           {displayTitle}
         </h1>
       )}
       <MarkdownRenderer content={mainContent} />
-    </>
+    </div>
   );
 }
 

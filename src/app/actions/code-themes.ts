@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { SITE_CONFIG } from "@/config";
+import { getSiteConfig } from "@/config";
 
 export async function setCodeTheme(themeId: string) {
   const cookieStore = await cookies();
@@ -16,17 +16,17 @@ export async function setCodeTheme(themeId: string) {
 }
 
 export async function getCodeTheme() {
-  // If a default is forced in .env, use it strictly
-  if (SITE_CONFIG.defaultCodeTheme) {
-    return SITE_CONFIG.defaultCodeTheme;
-  }
-
+  const siteConfig = await getSiteConfig();
   const cookieStore = await cookies();
   const themeFromCookie = cookieStore.get("code-theme")?.value;
-  
+
+  if (siteConfig.forceDefaultSettings && siteConfig.defaultCodeTheme) {
+    return siteConfig.defaultCodeTheme;
+  }
+
   if (themeFromCookie) {
     return themeFromCookie;
   }
-  
-  return "github-dark";
+
+  return siteConfig.defaultCodeTheme || "github-dark";
 }

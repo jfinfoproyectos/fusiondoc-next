@@ -9,6 +9,11 @@ import { Users, ClipboardList, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { getAvailableProjects } from "@/lib/github";
+import { Button } from "@/components/ui/button";
+import { GitHubErrorModal } from "@/components/GitHubErrorModal";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle, Key } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Grupos" };
@@ -20,8 +25,7 @@ export default async function GroupsPage() {
   const isAdmin = session.user.role === "admin";
 
   if (isAdmin) {
-    // Admin: cargar grupos + solicitudes + carpetas disponibles
-    const [groups, pendingMemberships, allProjects] = await Promise.all([
+    const [groups, pendingMemberships, allProjectsResult] = await Promise.all([
       prisma.group.findMany({
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { memberships: true } } },
@@ -36,10 +40,11 @@ export default async function GroupsPage() {
       getAvailableProjects(),
     ]);
 
+    const { projects: allProjects, error: githubError } = allProjectsResult;
+
     const projectMap = new Map(allProjects.map(p => [p.id, p.name]));
     const availableFolders = allProjects.map((p) => ({ id: p.id, name: p.name }));
 
-    // Enriquecer grupos con títulos para la vista de lista del administrador
     const enrichedGroups = groups.map(g => ({
       ...g,
       docFoldersWithTitles: g.docFolders.map(id => ({ 
@@ -53,6 +58,24 @@ export default async function GroupsPage() {
     return (
       <>
         <Toaster />
+        <GitHubErrorModal errorType={githubError} />
+        
+        {githubError === "rate_limit" && (
+          <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle className="font-bold">Límite de GitHub Excedido</AlertTitle>
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span>No se pueden cargar los proyectos porque has alcanzado el límite de la API de GitHub.</span>
+              <Link href="/dashboard/settings">
+                <Button size="sm" variant="outline" className="gap-2 bg-background font-bold">
+                  <Key className="h-4 w-4" />
+                  Configurar Token
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Tabs defaultValue="groups" className="space-y-6">
           <TabsList className="h-11 rounded-xl bg-muted/50 p-1">
             <TabsTrigger value="groups" className="rounded-lg gap-2 font-semibold text-sm px-4">
@@ -87,7 +110,7 @@ export default async function GroupsPage() {
     );
   }
 
-  const [allGroups, allProjects] = await Promise.all([
+  const [allGroups, allProjectsResult] = await Promise.all([
     prisma.group.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -100,6 +123,8 @@ export default async function GroupsPage() {
     }),
     getAvailableProjects(),
   ]);
+
+  const { projects: allProjects, error: githubError } = allProjectsResult;
 
   const projectMap = new Map(allProjects.map(p => [p.id, p.name]));
 
@@ -123,6 +148,19 @@ export default async function GroupsPage() {
   return (
     <>
       <Toaster />
+      <GitHubErrorModal errorType={githubError} />
+
+      {githubError === "rate_limit" && (
+        <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="font-bold">Límite de GitHub Excedido</AlertTitle>
+          <AlertDescription>
+            No se pueden cargar los proyectos porque has alcanzado el límite de la API de GitHub.
+            Por favor, informa al administrador.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Tabs defaultValue="mine" className="space-y-6">
         <TabsList className="h-11 rounded-xl bg-muted/50 p-1">
           <TabsTrigger value="mine" className="rounded-lg gap-2 font-semibold text-sm px-4">

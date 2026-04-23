@@ -10,7 +10,7 @@
  */
 
 import prisma from "@/lib/prisma";
-import { SITE_CONFIG } from "@/config";
+import { getSiteConfig } from "@/config";
 
 export interface DocAccessResult {
   /** El usuario está autenticado */
@@ -35,7 +35,8 @@ export async function getDocAccess(
   userId: string | null
 ): Promise<DocAccessResult> {
   // Bypass if Auth/DB is disabled
-  if (!SITE_CONFIG.enableAuthDb) {
+  const siteConfig = await getSiteConfig();
+  if (!siteConfig.enableAuthDb) {
     return {
       authenticated: true,
       allowed: true,
@@ -111,7 +112,8 @@ export async function getAccessibleFolderIds(
   allFolderIds: string[]
 ): Promise<string[]> {
   // Bypass if Auth/DB is disabled
-  if (!SITE_CONFIG.enableAuthDb) return allFolderIds;
+  const siteConfig = await getSiteConfig();
+  if (!siteConfig.enableAuthDb) return allFolderIds;
 
   if (!userId) return [];
 

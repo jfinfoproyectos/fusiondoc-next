@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, Suspense } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Loader2, RefreshCw } from "lucide-react";
 import { renderMdxPreviewAction } from "@/app/actions/admin-docs";
@@ -63,7 +63,13 @@ export function EditorPreview({ content }: EditorPreviewProps) {
             <MdxErrorFallback />
           ) : preview ? (
             <div className="animate-in fade-in duration-500">
-              {preview}
+              <Suspense fallback={
+                <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                  <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              }>
+                {preview}
+              </Suspense>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-4 opacity-40">

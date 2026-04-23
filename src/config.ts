@@ -1,18 +1,28 @@
-export const SITE_CONFIG = {
-  title: process.env.SITE_TITLE || 'FusionDoc',
-  logo: process.env.SITE_LOGO || 'lucide:package',
-  defaultTheme: process.env.DEFAULT_THEME || null,
-  defaultCodeTheme: process.env.DEFAULT_CODE_THEME || null,
-  defaultAppearance: process.env.DEFAULT_APPEARANCE || null,
-  enableAuthDb: process.env.ENABLE_AUTH_DB !== 'false',
-};
+import { getSettings } from "@/lib/settings";
 
-export const GITHUB_CONFIG = {
-  // Configuración de GitHub para modo Remoto
-  // Estas variables se leen prioritariamente de .env.local
-  owner: process.env.GITHUB_OWNER || 'jfinfotest',
-  repo: process.env.GITHUB_REPO || 'prueba_doc',
-  branch: process.env.GITHUB_BRANCH || 'main',
-  docsPath: process.env.GITHUB_DOCS_PATH || 'docs',
-  // Las versiones ("proyectos") ahora se obtienen dinámicamente escaneando las carpetas
-};
+export async function getSiteConfig() {
+  const settings = await getSettings();
+  return {
+    title: settings.siteTitle,
+    logo: settings.siteLogo,
+    defaultTheme: settings.defaultTheme,
+    defaultCodeTheme: settings.defaultCodeTheme,
+    defaultAppearance: settings.defaultAppearance,
+    enableAuthDb: true, // Siempre true ahora
+    footerText: settings.footerText,
+    socialLinks: JSON.parse(settings.socialLinks || "[]"),
+    forceDefaultSettings: settings.forceDefaultSettings,
+  };
+}
+
+export async function getGithubConfig() {
+  const settings = await getSettings();
+  return {
+    owner: settings.githubOwner,
+    repo: settings.githubRepo,
+    branch: settings.githubBranch,
+    docsPath: settings.githubDocsPath,
+    token: settings.githubToken,
+  };
+}
+

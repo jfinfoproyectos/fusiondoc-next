@@ -444,8 +444,6 @@ export function GroupManager({
                         <Link 
                           key={doc.id} 
                           href={`/${doc.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
                           className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary/5 border border-primary/10 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/30 transition-all group/doc shadow-sm relative overflow-hidden"
                         >
                           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">

@@ -1,4 +1,4 @@
-import { GITHUB_CONFIG, SITE_CONFIG } from '@/config';
+import { getGithubConfig, getSiteConfig } from '@/config';
 import matter from 'gray-matter';
 import { cache } from 'react';
 import { headers } from 'next/headers';
@@ -79,15 +79,23 @@ export function isFutureDate(dateVal?: string | Date): boolean {
 /**
  * Genera los headers para las solicitudes a la API de GitHub.
  */
-function getGithubHeaders(): Record<string, string> {
+async function getGithubHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json',
     'User-Agent': 'Fusiondoc-Next-App',
   };
 
-  const token = process.env.GITHUB_TOKEN;
+  const githubConfig = await getGithubConfig();
+  const token = githubConfig.token;
+  
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  } else if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    // Fallback to Client ID/Secret for higher rate limits (5000/hr instead of 60/hr)
+    const auth = Buffer.from(`${process.env.GITHUB_CLIENT_ID}:${process.env.GITHUB_CLIENT_SECRET}`).toString('base64');
+    headers['Authorization'] = `Basic ${auth}`;
+  } else {
+    console.warn("⚠️ No GitHub token or client credentials provided. Requests will be strictly rate-limited.");
   }
 
   return headers;
@@ -96,17 +104,30 @@ function getGithubHeaders(): Record<string, string> {
 /**
  * Obtiene el árbol completo del repositorio de GitHub.
  */
-export async function getGitTree(): Promise<{ sha: string; tree: GithubTreeItem[] } | null> {
-  const treeUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/git/trees/${GITHUB_CONFIG.branch}?recursive=1`;
+export async function getGitTree(): Promise<{ sha: string; tree: GithubTreeItem[]; error?: "rate_limit" | "forbidden" | "other" } | null> {
+  const githubConfig = await getGithubConfig();
+  const treeUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/git/trees/${githubConfig.branch}?recursive=1`;
   
   const res = await fetch(treeUrl, {
     cache: 'no-store',
-    headers: getGithubHeaders(),
+    headers: await getGithubHeaders(),
   });
 
   if (!res.ok) {
-    console.error('No se pudo obtener el árbol de GitHub:', res.status);
-    return null;
+    const errorData = await res.json().catch(() => ({ message: 'Could not parse error response' }));
+    console.error(`❌ GitHub API Error (${res.status}):`, errorData.message || 'Unknown error');
+    
+    let errorType: "rate_limit" | "forbidden" | "other" = "other";
+    if (res.status === 403) {
+      if (!githubConfig.token) {
+        errorType = "rate_limit";
+        console.error("💡 TIP: You are likely being rate-limited. Add a GITHUB_TOKEN to your .env or Dashboard settings.");
+      } else {
+        errorType = "forbidden";
+      }
+    }
+    
+    return { sha: '', tree: [], error: errorType };
   }
 
   const data = await res.json();
@@ -117,11 +138,12 @@ export async function getGitTree(): Promise<{ sha: string; tree: GithubTreeItem[
  * Descarga el contenido de un archivo usando la API de Git Blobs.
  */
 async function fetchBlobContent(sha: string): Promise<string | null> {
-  const blobUrl = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/git/blobs/${sha}`;
+  const githubConfig = await getGithubConfig();
+  const blobUrl = `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/git/blobs/${sha}`;
   
   const res = await fetch(blobUrl, {
     cache: 'no-store',
-    headers: getGithubHeaders(),
+    headers: await getGithubHeaders(),
   });
   if (!res.ok) return null;
   
@@ -149,20 +171,24 @@ export async function getFileContent(file: GithubTreeItem): Promise<{ content: s
 // PROJECTS (DYNAMIC VERSIONS)
 // ============================================================
 
-export const getAvailableProjects = cache(async function(): Promise<{ id: string, name: string, description?: string, icon?: string, order?: number, isPublic?: boolean }[]> {
+export const getAvailableProjects = cache(async function(): Promise<{ 
+  projects: { id: string, name: string, description?: string, icon?: string, order?: number, isPublic?: boolean }[],
+  error: "rate_limit" | "forbidden" | "other" | null 
+}> {
   const parseProjectDir = async (dirname: string, indexFile?: GithubTreeItem) => {
+    // ... (rest of parseProjectDir remains same)
     const cleanName = dirname.replace(/^\d+[-_]/, "").replace(/-/g, " ");
     let title = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
     let description = "";
     let icon = "";
     let order = 99;
 
-    let isPublic = !SITE_CONFIG.enableAuthDb; // Default to public if DB is disabled
+    const siteConfig = await getSiteConfig();
+    let isPublic = !siteConfig.enableAuthDb;
 
     let hasDbOverride = false;
     
-    if (SITE_CONFIG.enableAuthDb) {
-      // Check database for overrides first
+    if (siteConfig.enableAuthDb) {
       const dbProject = await prisma.docProject.findUnique({ where: { id: dirname } });
       if (dbProject) {
         isPublic = dbProject.isPublic;
@@ -179,7 +205,6 @@ export const getAvailableProjects = cache(async function(): Promise<{ id: string
           if (frontmatter.description) description = frontmatter.description;
           if (frontmatter.icon) icon = frontmatter.icon;
           if (frontmatter.order !== undefined) order = frontmatter.order;
-          // Only update isPublic from frontmatter if there is no DB override
           if (!hasDbOverride && frontmatter.public === true) isPublic = true;
         }
       } catch (e) {
@@ -191,12 +216,14 @@ export const getAvailableProjects = cache(async function(): Promise<{ id: string
   };
 
   const treeData = await getGitTree();
-  if (!treeData) return [];
+  if (!treeData) return { projects: [], error: "other" };
+  if (treeData.error) return { projects: [], error: treeData.error };
 
+  const githubConfig = await getGithubConfig();
   const rootDirs = treeData.tree.filter(item => 
     item.type === 'tree' && 
-    item.path.startsWith(`${GITHUB_CONFIG.docsPath}/`) &&
-    item.path.replace(`${GITHUB_CONFIG.docsPath}/`, '').split('/').length === 1
+    item.path.startsWith(`${githubConfig.docsPath}/`) &&
+    item.path.replace(`${githubConfig.docsPath}/`, '').split('/').length === 1
   );
 
   const projectPromises = rootDirs.map(async (dir) => {
@@ -207,7 +234,9 @@ export const getAvailableProjects = cache(async function(): Promise<{ id: string
   });
   
   const results = await Promise.all(projectPromises);
-  return results.filter(p => p.id).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.id.localeCompare(b.id));
+  const projects = results.filter(p => p.id).sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.id.localeCompare(b.id));
+  
+  return { projects, error: null };
 });
 
 // ============================================================
@@ -215,14 +244,15 @@ export const getAvailableProjects = cache(async function(): Promise<{ id: string
 // ============================================================
 
 export async function getTopics(version?: string): Promise<{ title: string; slug: string; order: number; icon?: string }[]> {
-  const projects = await getAvailableProjects();
+  const { projects } = await getAvailableProjects();
   const decodedVersion = version ? decodeURIComponent(version) : undefined;
   const effectiveVersion = decodedVersion || (projects.length > 0 ? projects[0].id : undefined);
   
   const treeData = await getGitTree();
   if (!treeData) return [];
 
-  const effectiveDocsPath = effectiveVersion ? `${GITHUB_CONFIG.docsPath}/${effectiveVersion}` : GITHUB_CONFIG.docsPath;
+  const githubConfig = await getGithubConfig();
+  const effectiveDocsPath = effectiveVersion ? `${githubConfig.docsPath}/${effectiveVersion}` : githubConfig.docsPath;
   const rootFoldersMap = new Map<string, {title: string; order: number; icon?: string}>();
   
   const rootDirs = treeData.tree.filter(item => 
@@ -273,7 +303,7 @@ export async function getTopics(version?: string): Promise<{ title: string; slug
 // ============================================================
 
 export const getNavigation = cache(async function(activeTopic?: string, version?: string): Promise<NavGroup[]> {
-  const projects = await getAvailableProjects();
+  const { projects } = await getAvailableProjects();
   const decodedVersion = version ? decodeURIComponent(version) : undefined;
   const decodedTopic = activeTopic ? decodeURIComponent(activeTopic) : undefined;
   const effectiveVersion = decodedVersion || (projects.length > 0 ? projects[0].id : undefined);
@@ -282,7 +312,8 @@ export const getNavigation = cache(async function(activeTopic?: string, version?
     const treeData = await getGitTree();
     if (!treeData) return [];
 
-    const effectiveDocsPath = effectiveVersion ? `${GITHUB_CONFIG.docsPath}/${effectiveVersion}` : GITHUB_CONFIG.docsPath;
+    const githubConfig = await getGithubConfig();
+  const effectiveDocsPath = effectiveVersion ? `${githubConfig.docsPath}/${effectiveVersion}` : githubConfig.docsPath;
     const basePath = decodedTopic ? `${effectiveDocsPath}/${decodedTopic}/` : `${effectiveDocsPath}/`;
     
     const mdFiles = treeData.tree.filter(item => 
@@ -377,12 +408,12 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   let version = "";
   let realSlugArray = [...decodedSlugArray];
 
-  const projects = await getAvailableProjects();
+  const { projects } = await getAvailableProjects();
 
   if (projects.length > 0) {
-    if (decodedSlugArray.length > 0 && projects.some(p => p.id === decodedSlugArray[0])) {
-      version = decodedSlugArray[0];
-      realSlugArray = decodedSlugArray.slice(1);
+    if (slugArray.length > 0 && projects.some(p => p.id === slugArray[0])) {
+      version = slugArray[0];
+      realSlugArray = slugArray.slice(1);
     } else {
       version = projects[0].id;
     }
@@ -391,7 +422,8 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   const treeData = await getGitTree();
   if (!treeData) return null;
 
-  const effectiveDocsPath = version ? `${GITHUB_CONFIG.docsPath}/${version}` : GITHUB_CONFIG.docsPath;
+  const githubConfig = await getGithubConfig();
+  const effectiveDocsPath = version ? `${githubConfig.docsPath}/${version}` : githubConfig.docsPath;
   const basePath = `${effectiveDocsPath}/${realSlugArray.join('/')}`;
   let filePath = `${basePath.replace(/\/$/, '')}.md`;
   if (realSlugArray.length === 0) filePath = `${effectiveDocsPath}/index.md`;
@@ -418,7 +450,8 @@ export async function getDocContent(slugArray: string[] = []): Promise<DocResult
   if (docResult && isIndex) {
     const childrenMap = new Map<string, { title: string; href: string; description?: string; order?: number; icon?: string }>();
     
-    const effectiveDocsPath = version ? `${GITHUB_CONFIG.docsPath}/${version}` : GITHUB_CONFIG.docsPath;
+    const githubConfig = await getGithubConfig();
+  const effectiveDocsPath = version ? `${githubConfig.docsPath}/${version}` : githubConfig.docsPath;
     const basePath = `${effectiveDocsPath}/${realSlugArray.join('/')}`;
     
     const directChildren = treeData.tree.filter(item => {

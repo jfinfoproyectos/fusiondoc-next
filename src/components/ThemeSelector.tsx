@@ -22,17 +22,21 @@ export interface ThemeInfo {
 interface ThemeSelectorProps {
   themes: ThemeInfo[];
   defaultTheme?: string | null;
+  forceDefaultSettings?: boolean;
 }
 
-export function ThemeSelector({ themes, defaultTheme }: ThemeSelectorProps) {
+export function ThemeSelector({ themes, defaultTheme, forceDefaultSettings }: ThemeSelectorProps) {
   const [mounted, setMounted] = useState(false);
   const [activeTheme, setActiveTheme] = useState<string>("default");
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = defaultTheme || localStorage.getItem("fusiondoc-theme") || "default";
+    const local = localStorage.getItem("fusiondoc-theme");
+    const savedTheme = (forceDefaultSettings || !local) 
+      ? (defaultTheme || "default") 
+      : local;
     setActiveTheme(savedTheme);
-  }, [defaultTheme]);
+  }, [defaultTheme, forceDefaultSettings]);
 
   useEffect(() => {
     if (!mounted) return;
