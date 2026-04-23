@@ -49,8 +49,8 @@ export const auth = betterAuth({
     admin({ defaultRole: "user" }),
   ],
 
-  trustedOrigins: [
-    "http://localhost:3000",
-    process.env.NEXT_PUBLIC_APP_URL || "",
-  ].filter(Boolean),
+  // trustedOrigins: [
+  //   "http://localhost:3000",
+  //   process.env.NEXT_PUBLIC_APP_URL || "",
+  // ].filter(Boolean),
 });
