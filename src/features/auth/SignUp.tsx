@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, User, FileText } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User, Layers } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,54 +48,62 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       {/* Left panel — decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background flex-col items-center justify-center p-16 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/3 left-1/3 w-80 h-80 rounded-full bg-background/20 blur-3xl" />
-          <div className="absolute bottom-1/3 right-1/3 w-60 h-60 rounded-full bg-background/10 blur-2xl" />
+      <div className="hidden lg:flex lg:w-1/2 bg-[#0a0a0a] text-white flex-col items-center justify-center p-16 relative overflow-hidden border-r border-white/5">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-full h-full bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-full h-full bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff05_1px,transparent_1px)] [background-size:32px_32px]" />
         </div>
-        <div className="relative z-10 text-center space-y-6 max-w-md">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-background/10 flex items-center justify-center">
-              <FileText className="w-6 h-6 text-background" />
+        
+        <div className="relative z-10 text-center space-y-10 max-w-sm">
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-2xl shadow-primary/40">
+              <Layers className="text-primary-foreground h-6 w-6" />
             </div>
-            <span className="text-3xl font-black tracking-tight text-background">FusionDoc</span>
+            <div className="space-y-2">
+              <span className="text-2xl font-black tracking-tighter uppercase block">
+                Fusion<span className="text-white">Doc</span>
+              </span>
+              <p className="text-white/60 text-xs font-black uppercase tracking-[0.4em]">
+                Arquitectura del Conocimiento
+              </p>
+            </div>
           </div>
-          <h2 className="text-4xl font-bold leading-tight text-background">
-            Únete a la plataforma
-          </h2>
-          <p className="text-background/60 text-lg leading-relaxed">
-            Crea tu cuenta para acceder a documentación exclusiva, unirte a grupos de trabajo y colaborar con tu equipo.
+          
+          <p className="text-white/80 text-sm font-medium leading-relaxed max-w-[280px] mx-auto">
+            Únete a la plataforma líder para la distribución de conocimiento técnico y colaboración profesional.
           </p>
-          <div className="flex flex-col gap-3 pt-4 text-left">
-            {[
-              { icon: "📄", text: "Acceso a documentación técnica" },
-              { icon: "👥", text: "Únete a grupos de trabajo" },
-              { icon: "🔒", text: "Acceso seguro con JWT" },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3 text-background/70">
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-sm font-medium">{item.text}</span>
-              </div>
+          
+          <div className="flex justify-center gap-3 pt-4">
+            {["Seguridad", "Velocidad", "Núcleo"].map((tag) => (
+              <div
+                key={tag}
+                className="w-1.5 h-1.5 rounded-full bg-primary/40"
+              />
             ))}
           </div>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-16 bg-background">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-16">
+        <div className="w-full max-w-sm space-y-10">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden mb-4">
-            <FileText className="w-6 h-6" />
-            <span className="text-xl font-black">FusionDoc</span>
+          <div className="flex items-center gap-2 lg:hidden mb-8 justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Layers className="text-primary-foreground h-4 w-4" />
+            </div>
+            <span className="text-lg font-black tracking-tighter uppercase italic">
+              Fusion<span className="text-primary">Doc</span>
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Crear cuenta</h1>
-            <p className="text-muted-foreground">
-              Regístrate para empezar a usar FusionDoc.
+          <div className="space-y-3 text-center">
+            <h1 className="text-3xl font-black tracking-tighter uppercase">Registro</h1>
+            <p className="text-muted-foreground/60 text-sm font-medium">
+              Crea tu cuenta para empezar a organizar tu documentación.
             </p>
           </div>
 

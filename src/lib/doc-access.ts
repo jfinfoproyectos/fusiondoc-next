@@ -48,7 +48,7 @@ export async function getDocAccess(
 
   // 1. Buscar grupos que controlan esta carpeta
   const grantingGroups = await prisma.group.findMany({
-    where: { docFolders: { has: folderId } },
+    where: { docFolder: folderId },
     select: { id: true, name: true },
   });
 
@@ -120,19 +120,25 @@ export async function getAccessibleFolderIds(
   // Grupos donde el usuario tiene membresía aprobada
   const approvedMemberships = await prisma.groupMembership.findMany({
     where: { userId, status: "APPROVED" },
-    select: { group: { select: { docFolders: true } } },
+    select: { group: { select: { docFolder: true } } },
   });
 
   const approvedFolders = new Set(
-    approvedMemberships.flatMap((m) => m.group.docFolders)
+    approvedMemberships
+      .map((m) => m.group.docFolder)
+      .filter((id): id is string => id !== null)
   );
 
   // Carpetas que están bajo el control de algún grupo
   const controlledGroups = await prisma.group.findMany({
-    where: { docFolders: { isEmpty: false } },
-    select: { docFolders: true },
+    where: { docFolder: { not: null } },
+    select: { docFolder: true },
   });
-  const controlledFolders = new Set(controlledGroups.flatMap((g) => g.docFolders));
+  const controlledFolders = new Set(
+    controlledGroups
+      .map((g) => g.docFolder)
+      .filter((id): id is string => id !== null)
+  );
 
   return allFolderIds.filter((folderId) => {
     const isControlled = controlledFolders.has(folderId);

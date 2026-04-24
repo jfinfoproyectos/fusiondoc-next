@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, GitBranch, FileText } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, GitBranch, Layers } from "lucide-react";
 import { JSX, SVGProps, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -68,52 +68,64 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       {/* Left panel — decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-foreground text-background flex-col items-center justify-center p-16 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-background/20 blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-background/10 blur-2xl" />
+      <div className="hidden lg:flex lg:w-1/2 bg-[#0a0a0a] text-white flex-col items-center justify-center p-16 relative overflow-hidden border-r border-white/5">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-full h-full bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-full h-full bg-primary/5 rounded-full blur-[120px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff05_1px,transparent_1px)] [background-size:32px_32px]" />
         </div>
-        <div className="relative z-10 text-center space-y-6 max-w-md">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-background/10 flex items-center justify-center">
-              <FileText className="w-6 h-6 text-background" />
+        
+        <div className="relative z-10 text-center space-y-8 max-w-sm">
+        <div className="relative z-10 text-center space-y-10 max-w-sm">
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-2xl shadow-primary/40">
+              <Layers className="text-primary-foreground h-6 w-6" />
             </div>
-            <span className="text-3xl font-black tracking-tight text-background">FusionDoc</span>
-          </div>
-          <h2 className="text-4xl font-bold leading-tight text-background">
-            Tu hub de documentación técnica
-          </h2>
-          <p className="text-background/60 text-lg leading-relaxed">
-            Accede a documentación sincronizada dinámicamente, únete a grupos de trabajo y colabora con tu equipo.
-          </p>
-          <div className="flex justify-center gap-3 pt-4">
-            {["Docs", "Grupos", "Colaboración"].map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-background/10 text-background/70"
-              >
-                {tag}
+            <div className="space-y-2">
+              <span className="text-2xl font-black tracking-tighter uppercase block">
+                Fusion<span className="text-white">Doc</span>
               </span>
+              <p className="text-white/60 text-xs font-black uppercase tracking-[0.4em]">
+                Arquitectura del Conocimiento
+              </p>
+            </div>
+          </div>
+          
+          <p className="text-white/80 text-sm font-medium leading-relaxed max-w-[280px] mx-auto">
+            La plataforma profesional para la gestión y distribución de documentación técnica.
+          </p>
+          
+          <div className="flex justify-center gap-3 pt-4">
+            {["Seguridad", "Velocidad", "Núcleo"].map((tag) => (
+              <div
+                key={tag}
+                className="w-1.5 h-1.5 rounded-full bg-primary/40"
+              />
             ))}
           </div>
+        </div>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-16 bg-background">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-16">
+        <div className="w-full max-w-sm space-y-10">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden mb-4">
-            <FileText className="w-6 h-6" />
-            <span className="text-xl font-black">FusionDoc</span>
+          <div className="flex items-center gap-2 lg:hidden mb-8 justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <Layers className="text-primary-foreground h-4 w-4" />
+            </div>
+            <span className="text-lg font-black tracking-tighter uppercase italic">
+              Fusion<span className="text-primary">Doc</span>
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Bienvenido de nuevo</h1>
-            <p className="text-muted-foreground">
-              Inicia sesión para acceder a tu panel y grupos.
+          <div className="space-y-3 text-center">
+            <h1 className="text-3xl font-black tracking-tighter uppercase">Acceso</h1>
+            <p className="text-muted-foreground/60 text-sm font-medium">
+              Inicia sesión para gestionar tu base de conocimiento.
             </p>
           </div>
 

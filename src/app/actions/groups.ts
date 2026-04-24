@@ -21,9 +21,7 @@ export async function createGroupAction(formData: FormData) {
   const description = formData.get("description") as string;
   const startDateStr = formData.get("startDate") as string;
   const endDateStr = formData.get("endDate") as string;
-  const docFoldersStr = formData.get("docFolders") as string;
-  const docFolders = docFoldersStr ? docFoldersStr.split(",").map(s => s.trim()).filter(Boolean) : [];
-
+  const docFolder = formData.get("docFolder") as string;
   const imageUrl = formData.get("imageUrl") as string;
 
   if (!name?.trim()) throw new Error("El nombre del grupo es requerido.");
@@ -36,7 +34,7 @@ export async function createGroupAction(formData: FormData) {
       startDate: startDateStr ? new Date(startDateStr) : null,
       endDate: endDateStr ? new Date(endDateStr) : null,
       registrationOpen: true,
-      docFolders,
+      docFolder: docFolder?.trim() || null,
     },
   });
 
@@ -55,9 +53,7 @@ export async function updateGroupAction(formData: FormData) {
   const startDateStr = formData.get("startDate") as string;
   const endDateStr = formData.get("endDate") as string;
   const registrationOpen = formData.get("registrationOpen") === "true";
-  const docFoldersStr = formData.get("docFolders") as string;
-  const docFolders = docFoldersStr ? docFoldersStr.split(",").map(s => s.trim()).filter(Boolean) : [];
-
+  const docFolder = formData.get("docFolder") as string;
   const imageUrl = formData.get("imageUrl") as string;
 
   if (!groupId) throw new Error("ID de grupo requerido.");
@@ -71,7 +67,7 @@ export async function updateGroupAction(formData: FormData) {
       startDate: startDateStr ? new Date(startDateStr) : null,
       endDate: endDateStr ? new Date(endDateStr) : null,
       registrationOpen,
-      docFolders,
+      docFolder: docFolder?.trim() || null,
     },
   });
 

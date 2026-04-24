@@ -6,7 +6,7 @@ import { GroupCatalog } from "@/features/groups/GroupCatalog";
 import { UserDocsList } from "@/features/groups/UserDocsList";
 import { GroupMembershipRequests } from "@/features/groups/GroupMembershipRequests";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, BookOpen, Globe, Files } from "lucide-react";
+import { Users, ClipboardList, BookOpen, Globe, Files, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { getAvailableProjects } from "@/lib/github";
@@ -15,6 +15,12 @@ import { GitHubErrorModal } from "@/components/GitHubErrorModal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, Key } from "lucide-react";
 import Link from "next/link";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Grupos" };
@@ -46,23 +52,34 @@ export default async function GroupsPage() {
     const projectMap = new Map(allProjects.map(p => [p.id, p.name]));
     const availableFolders = allProjects.map((p) => ({ id: p.id, name: p.name }));
 
-    const enrichedGroups = groups.map(g => ({
-      ...g,
-      docFoldersWithTitles: g.docFolders.map(id => ({ 
-        id, 
-        title: projectMap.get(id) || id,
-        icon: allProjects.find(p => p.id === id)?.icon || "lucide:file-text",
-        isPublic: allProjects.find(p => p.id === id)?.isPublic || false
-      }))
-    }));
+    const enrichedGroups = groups.map(g => {
+      const doc = g.docFolder ? {
+        id: g.docFolder,
+        title: projectMap.get(g.docFolder) || g.docFolder,
+        icon: allProjects.find(p => p.id === g.docFolder)?.icon || "lucide:file-text",
+        isPublic: allProjects.find(p => p.id === g.docFolder)?.isPublic || false
+      } : null;
+
+      return {
+        ...g,
+        docFoldersWithTitles: doc ? [doc] : []
+      };
+    });
 
     return (
-      <>
+      <div className="space-y-8">
         <Toaster />
         <GitHubErrorModal errorType={githubError} />
+
+        <div className="flex flex-col gap-2 pb-2">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">Grupos</h1>
+          <p className="text-muted-foreground font-medium">
+            Administra los grupos de acceso y las solicitudes de los estudiantes a la documentación.
+          </p>
+        </div>
         
         {githubError === "rate_limit" && (
-          <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20">
+          <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle className="font-bold">Límite de GitHub Excedido</AlertTitle>
             <AlertDescription className="flex items-center justify-between gap-4">
@@ -106,8 +123,10 @@ export default async function GroupsPage() {
           <TabsContent value="requests">
             <GroupMembershipRequests requests={pendingMemberships} />
           </TabsContent>
+
+
         </Tabs>
-      </>
+      </div>
     );
   }
 
@@ -131,20 +150,24 @@ export default async function GroupsPage() {
 
   const myGroups = allGroups.filter((g) => g.memberships[0]?.status === "APPROVED");
 
-  const groupsWithStatus = allGroups.map((g) => ({
-    ...g,
-    docFoldersWithTitles: g.docFolders.map(id => ({ 
-      id, 
-      title: projectMap.get(id) || id,
-      icon: allProjects.find(p => p.id === id)?.icon || "lucide:file-text",
-      isPublic: allProjects.find(p => p.id === id)?.isPublic || false
-    })),
-    membershipStatus: (g.memberships[0]?.status ?? null) as
-      | "APPROVED"
-      | "PENDING"
-      | "REJECTED"
-      | null,
-  }));
+  const groupsWithStatus = allGroups.map((g) => {
+    const doc = g.docFolder ? {
+      id: g.docFolder,
+      title: projectMap.get(g.docFolder) || g.docFolder,
+      icon: allProjects.find(p => p.id === g.docFolder)?.icon || "lucide:file-text",
+      isPublic: allProjects.find(p => p.id === g.docFolder)?.isPublic || false
+    } : null;
+
+    return {
+      ...g,
+      docFoldersWithTitles: doc ? [doc] : [],
+      membershipStatus: (g.memberships[0]?.status ?? null) as
+        | "APPROVED"
+        | "PENDING"
+        | "REJECTED"
+        | null,
+    };
+  });
 
   return (
     <>

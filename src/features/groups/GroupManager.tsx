@@ -13,6 +13,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,6 +30,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import DynamicIcon from "@/components/DynamicIcon";
 import {
   Plus,
@@ -55,7 +71,7 @@ interface Group {
   registrationOpen: boolean;
   startDate: Date | string | null;
   endDate: Date | string | null;
-  docFolders: string[];
+  docFolder: string | null;
   docFoldersWithTitles?: { id: string; title: string; icon?: string; isPublic?: boolean }[];
   _count: { memberships: number };
 }
@@ -65,9 +81,9 @@ interface DocFolder {
   name: string;
 }
 
-// ─── Form Dialog ─────────────────────────────────────────────────────────────
+// ─── Form Sheet ──────────────────────────────────────────────────────────────
 
-function GroupFormDialog({
+function GroupFormSheet({
   mode,
   group,
   trigger,
@@ -80,27 +96,26 @@ function GroupFormDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [selectedFolders, setSelectedFolders] = useState<string[]>(
-    group?.docFolders ?? []
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(
+    group?.docFolder ?? null
   );
 
-  const toggleFolder = (folderId: string) => {
-    setSelectedFolders((prev) =>
-      prev.includes(folderId) ? prev.filter((f) => f !== folderId) : [...prev, folderId]
-    );
+  const selectFolder = (folderId: string) => {
+    setSelectedFolder((prev) => (prev === folderId ? null : folderId));
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    // docFolders como lista separada por coma
-    formData.set("docFolders", selectedFolders.join(","));
+    if (selectedFolder) {
+      formData.set("docFolder", selectedFolder);
+    }
     startTransition(async () => {
       try {
         if (mode === "create") {
           await createGroupAction(formData);
           toast.success("Grupo creado correctamente");
-          setSelectedFolders([]);
+          setSelectedFolder(null);
         } else {
           await updateGroupAction(formData);
           toast.success("Grupo actualizado correctamente");
@@ -118,24 +133,28 @@ function GroupFormDialog({
   };
 
   return (
-    <Dialog
+    <Sheet
       open={open}
       onOpenChange={(v) => {
         setOpen(v);
-        if (!v) setSelectedFolders(group?.docFolders ?? []);
+        if (!v) setSelectedFolder(group?.docFolder ?? null);
       }}
     >
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-[2rem] border-border/40 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase italic">{mode === "create" ? "Crear Grupo" : "Editar Grupo"}</DialogTitle>
-          <DialogDescription className="text-base font-medium">
-            {mode === "create"
-              ? "Completa la información para crear un nuevo grupo."
-              : "Modifica los datos del grupo."}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto border-l border-border/40 bg-background/95 backdrop-blur-xl p-0">
+        <div className="flex flex-col h-full">
+          <SheetHeader className="px-8 pt-10 pb-6 space-y-1 border-b border-border/10">
+            <SheetTitle className="text-2xl font-black uppercase italic tracking-tight">
+              {mode === "create" ? "Crear Grupo" : "Editar Grupo"}
+            </SheetTitle>
+            <SheetDescription className="text-sm font-medium text-muted-foreground">
+              {mode === "create"
+                ? "Configura un nuevo grupo de documentación."
+                : "Actualiza los parámetros del grupo."}
+            </SheetDescription>
+          </SheetHeader>
+          
+          <form onSubmit={handleSubmit} className="flex-1 px-8 py-8 space-y-8">
           {group && <input type="hidden" name="groupId" value={group.id} />}
 
           {/* Nombre */}
@@ -204,86 +223,57 @@ function GroupFormDialog({
           {mode === "edit" && (
             <div className="space-y-2.5">
               <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Estado de inscripción</Label>
-              <select
-                name="registrationOpen"
+              <Select 
+                name="registrationOpen" 
                 defaultValue={group?.registrationOpen ? "true" : "false"}
-                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/30 text-sm focus:bg-background transition-all"
               >
-                <option value="true">Abierta</option>
-                <option value="false">Cerrada</option>
-              </select>
+                <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all">
+                  <SelectValue placeholder="Estado de inscripción" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-border/40 shadow-2xl">
+                  <SelectItem value="true" className="font-medium">Abierta</SelectItem>
+                  <SelectItem value="false" className="font-medium">Cerrada</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
-          {/* Documentaciones asignadas */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-2">
-              <Label className="flex-1 text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Documentaciones asignadas</Label>
-              {selectedFolders.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] font-black bg-primary/10 text-primary">
-                  {selectedFolders.length} seleccionada{selectedFolders.length > 1 ? "s" : ""}
-                </Badge>
-              )}
-            </div>
-            {availableFolders.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-3 text-center border border-dashed rounded-xl">
-                No hay carpetas de docs disponibles.
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar">
-                {availableFolders.map((folder) => {
-                  const isSelected = selectedFolders.includes(folder.id);
-                  return (
-                    <button
-                      key={folder.id}
-                      type="button"
-                      onClick={() => toggleFolder(folder.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${
-                        isSelected
-                          ? "border-primary/50 bg-primary/5 text-primary"
-                          : "border-border/30 bg-muted/10 hover:bg-muted/20 text-foreground"
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                        isSelected ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-                      }`}>
-                        {isSelected ? <FolderLock className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold truncate">{folder.name}</p>
-                        <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-tight">{folder.id}</p>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                          isSelected
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground/30"
-                        }`}
-                      >
-                        {isSelected && (
-                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+          {/* Documentación asignada */}
+          <div className="space-y-2.5">
+            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Documentación asignada</Label>
+            <Select 
+              value={selectedFolder || "none"} 
+              onValueChange={(val) => setSelectedFolder(val === "none" ? null : val)}
+            >
+              <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all">
+                <SelectValue placeholder="Selecciona una documentación" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-border/40 shadow-2xl">
+                <SelectItem value="none" className="text-muted-foreground italic">Sin documentación</SelectItem>
+                {availableFolders.map((folder) => (
+                  <SelectItem key={folder.id} value={folder.id} className="font-medium">
+                    {folder.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground/60 ml-1 italic">
+              Los miembros de este grupo tendrán acceso exclusivo a este proyecto.
+            </p>
           </div>
 
-          <DialogFooter className="pt-4 border-t border-border/40">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isPending} className="rounded-xl px-8 font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
+          <div className="pt-6 flex flex-col gap-3">
+            <Button type="submit" disabled={isPending} className="h-14 w-full rounded-2xl font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all text-sm">
               {isPending ? "Guardando..." : mode === "create" ? "Crear Grupo" : "Guardar Cambios"}
             </Button>
-          </DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-2xl font-bold h-12 text-muted-foreground hover:text-foreground">
+              Cancelar
+            </Button>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -417,13 +407,17 @@ export function GroupManager({
                 <div className="space-y-3 w-full">
                   {/* Actions Toolbar - Integrated & Centered */}
                   <div className="flex items-center w-full bg-muted/40 p-0.5 rounded-lg border border-border/20">
-                    <GroupFormDialog
+                    <GroupFormSheet
                       mode="edit"
                       group={group}
                       availableFolders={availableFolders}
                       trigger={
-                        <Button variant="ghost" size="sm" className="flex-1 h-6 font-bold text-[8px] gap-1 text-muted-foreground hover:text-primary rounded-md">
-                          <Pencil className="h-2.5 w-2.5" />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 rounded-xl hover:bg-primary/10 hover:text-primary transition-all"
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
                       }
                     />
@@ -474,12 +468,12 @@ export function GroupManager({
             {groups.length} grupo{groups.length !== 1 ? "s" : ""} en total
           </p>
         </div>
-        <GroupFormDialog
+        <GroupFormSheet
           mode="create"
           availableFolders={availableFolders}
           trigger={
-            <Button className="gap-2 rounded-xl font-semibold shadow-md">
-              <Plus className="h-4 w-4" />
+            <Button className="h-11 rounded-xl px-6 font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all group shrink-0">
+              <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
               Nuevo Grupo
             </Button>
           }

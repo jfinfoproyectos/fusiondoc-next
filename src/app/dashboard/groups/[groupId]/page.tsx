@@ -62,11 +62,13 @@ export default async function GroupDetailPage({
   const { projects: allProjects } = allProjectsResult;
   const projectMap = new Map(allProjects.map(p => [p.id, p.name]));
 
-  const docFoldersWithTitles = group.docFolders.map(id => ({ 
-    id, 
-    title: projectMap.get(id) || id,
-    icon: allProjects.find(p => p.id === id)?.icon || "lucide:file-text"
-  }));
+  const doc = group.docFolder ? {
+    id: group.docFolder,
+    title: projectMap.get(group.docFolder) || group.docFolder,
+    icon: allProjects.find(p => p.id === group.docFolder)?.icon || "lucide:file-text"
+  } : null;
+
+  const docFoldersWithTitles = doc ? [doc] : [];
 
   const members = group.memberships.map((m) => ({
     id: m.user.id,

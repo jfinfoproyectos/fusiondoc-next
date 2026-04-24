@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
     // 6. Verificación de Acceso por Grupo
     // Buscamos si el proyecto está protegido por algún grupo
     const grantingGroups = await prisma.group.findMany({
-      where: { docFolders: { has: projectId } },
+      where: { docFolder: projectId },
       select: { id: true },
     }).catch(err => {
       console.error("[Proxy DB Error - Groups]:", err.message);

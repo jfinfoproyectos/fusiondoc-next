@@ -19,7 +19,7 @@ interface Group {
   registrationOpen: boolean;
   startDate: Date | string | null;
   endDate: Date | string | null;
-  docFolders: string[];
+  docFolder: string | null;
   docFoldersWithTitles?: { id: string; title: string; icon?: string }[];
 }
 
