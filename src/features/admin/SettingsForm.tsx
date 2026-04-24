@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { updateSettingsAction } from "@/app/actions/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,25 +64,19 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
 
   const { setTheme } = useTheme();
 
-  // LIVE PREVIEW EFFECT
+  // LIVE PREVIEW EFFECT - Removed setTheme to prevent unwanted theme switching
+  // The theme will now only change upon saving or via the header toggle.
   useEffect(() => {
-    // Force appearance
-    if (formData.defaultAppearance) {
-      setTheme(formData.defaultAppearance);
-    }
-    // Force theme
-    window.dispatchEvent(new CustomEvent("fusiondoc-theme-change", { detail: formData.defaultTheme || "default" }));
-    // Force code theme
-    window.dispatchEvent(new CustomEvent("code-theme-change", { detail: formData.defaultCodeTheme || "one-dark-pro" }));
-    
-    // Force hide/show buttons live preview
+    // Force hide/show buttons live preview (this only affects UI visibility, not theme)
     window.dispatchEvent(new CustomEvent("fusiondoc-force-preview", { detail: formData.forceDefaultSettings }));
-  }, [formData.defaultTheme, formData.defaultAppearance, formData.defaultCodeTheme, formData.forceDefaultSettings, setTheme]);
+  }, [formData.forceDefaultSettings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const [activeTab, setActiveTab] = useState("general");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +97,7 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Tabs defaultValue="general" className="w-full">
+      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-full max-w-md mb-8 h-12 p-1 bg-muted/50 rounded-2xl border border-border/50">
           <TabsTrigger value="general" className="rounded-xl gap-2 font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Globe className="w-4 h-4" />
@@ -268,12 +263,13 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
               <CardDescription className="text-base font-medium">Establece los valores predeterminados para el tema y resaltado de código.</CardDescription>
             </CardHeader>
             <CardContent className="p-10 space-y-8">
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className={cn("grid gap-6 sm:grid-cols-2 transition-all duration-300", !formData.forceDefaultSettings && "opacity-40 grayscale pointer-events-none")}>
                 <div className="space-y-3">
                   <Label htmlFor="defaultTheme" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Tema por Defecto</Label>
                   <Select 
                     value={formData.defaultTheme} 
                     onValueChange={(val) => setFormData(prev => ({ ...prev, defaultTheme: val }))}
+                    disabled={!formData.forceDefaultSettings}
                   >
                     <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all">
                       <SelectValue placeholder="Selecciona un tema" />
@@ -291,6 +287,7 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
                   <Select 
                     value={formData.defaultAppearance} 
                     onValueChange={(val) => setFormData(prev => ({ ...prev, defaultAppearance: val }))}
+                    disabled={!formData.forceDefaultSettings}
                   >
                     <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all">
                       <SelectValue placeholder="Selecciona apariencia" />
@@ -303,11 +300,12 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-3">
+              <div className={cn("space-y-3 transition-all duration-300", !formData.forceDefaultSettings && "opacity-40 grayscale pointer-events-none")}>
                 <Label htmlFor="defaultCodeTheme" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Tema de Código (Shiki)</Label>
                 <Select 
                   value={formData.defaultCodeTheme} 
                   onValueChange={(val) => setFormData(prev => ({ ...prev, defaultCodeTheme: val }))}
+                  disabled={!formData.forceDefaultSettings}
                 >
                   <SelectTrigger className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all">
                     <SelectValue placeholder="Selecciona tema de código" />
@@ -342,8 +340,8 @@ export function SettingsForm({ initialSettings, themes }: SettingsFormProps) {
         <div className="flex justify-end pt-4">
           <Button 
             type="submit" 
-            disabled={loading}
-            className="h-14 px-10 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+            disabled={loading || (activeTab === "appearance" && !formData.forceDefaultSettings && formData.forceDefaultSettings === initialSettings.forceDefaultSettings)}
+            className="h-14 px-10 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest gap-3 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:pointer-events-none"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

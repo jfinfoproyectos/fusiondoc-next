@@ -6,19 +6,19 @@ const adapter = new PrismaPg({
 });
 
 const globalForPrisma = global as unknown as {
-  prisma_v2: PrismaClient;
+  prisma_v3: PrismaClient;
 };
 
-// Use a versioned key (prisma_v2) to force a new instance when the schema changes in dev
-// This ensures that new models like 'docProject' are correctly recognized
+// Use a versioned key (prisma_v3) to force a new instance when the schema changes in dev
+// This ensures that new models like 'docProject' or fields like 'imageUrl' are correctly recognized
 const prisma =
-  globalForPrisma.prisma_v2 ||
+  globalForPrisma.prisma_v3 ||
   new PrismaClient({
     adapter,
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma_v2 = prisma;
+  globalForPrisma.prisma_v3 = prisma;
 }
 
 export { prisma };

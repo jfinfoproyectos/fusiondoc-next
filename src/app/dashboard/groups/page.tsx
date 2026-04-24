@@ -3,9 +3,10 @@ import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { GroupManager } from "@/features/groups/GroupManager";
 import { GroupCatalog } from "@/features/groups/GroupCatalog";
+import { UserDocsList } from "@/features/groups/UserDocsList";
 import { GroupMembershipRequests } from "@/features/groups/GroupMembershipRequests";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, BookOpen } from "lucide-react";
+import { Users, ClipboardList, BookOpen, Globe, Files } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Toaster } from "@/components/ui/sonner";
 import { getAvailableProjects } from "@/lib/github";
@@ -163,9 +164,13 @@ export default async function GroupsPage() {
 
       <Tabs defaultValue="mine" className="space-y-6">
         <TabsList className="h-11 rounded-xl bg-muted/50 p-1">
+          <TabsTrigger value="public" className="rounded-lg gap-2 font-semibold text-sm px-4">
+            <Globe className="h-4 w-4" />
+            Documentación Pública
+          </TabsTrigger>
           <TabsTrigger value="mine" className="rounded-lg gap-2 font-semibold text-sm px-4">
-            <Users className="h-4 w-4" />
-            Mis Grupos
+            <Files className="h-4 w-4" />
+            Documentación Inscrita
             {myGroups.length > 0 && (
               <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                 {myGroups.length}
@@ -173,15 +178,48 @@ export default async function GroupsPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="catalog" className="rounded-lg gap-2 font-semibold text-sm px-4">
-            <BookOpen className="h-4 w-4" />
-            Grupos para inscribirse
+            <ClipboardList className="h-4 w-4" />
+            Inscripciones
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="public">
+          <div className="space-y-4">
+            <UserDocsList 
+              docs={allProjects.filter(p => p.isPublic).map(p => ({
+                id: p.id,
+                title: p.name,
+                icon: p.icon,
+                groupName: "Público"
+              }))} 
+            />
+          </div>
+        </TabsContent>
+
         <TabsContent value="mine">
           <div className="space-y-4">
-            <GroupCatalog
-              groups={groupsWithStatus.filter((g) => g.membershipStatus === "APPROVED")}
+            <UserDocsList 
+              docs={Object.values(
+                groupsWithStatus
+                  .filter((g) => g.membershipStatus === "APPROVED")
+                  .flatMap((g) => (g.docFoldersWithTitles || [])
+                    .filter(doc => !doc.isPublic)
+                    .map(doc => ({ 
+                      ...doc, 
+                      groupName: g.name, 
+                      imageUrl: g.imageUrl 
+                    }))
+                  )
+                  .reduce((acc, curr) => {
+                    // Si ya existe y el actual NO tiene imagen, pero el existente SÍ, nos quedamos con el existente
+                    if (acc[curr.id] && !curr.imageUrl && acc[curr.id].imageUrl) {
+                      return acc;
+                    }
+                    // En cualquier otro caso (nuevo, o el actual tiene imagen), sobreescribimos
+                    acc[curr.id] = curr;
+                    return acc;
+                  }, {} as Record<string, any>)
+              )} 
             />
           </div>
         </TabsContent>

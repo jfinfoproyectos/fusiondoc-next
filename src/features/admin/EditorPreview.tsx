@@ -1,11 +1,30 @@
 "use client";
 
-import { useState, useEffect, useTransition, Suspense } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Loader2, RefreshCw } from "lucide-react";
 import { renderMdxPreviewAction } from "@/app/actions/admin-docs";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MdxErrorFallback } from "@/components/MdxErrorFallback";
+import { MDXRemote } from "next-mdx-remote";
+import { mdxComponents } from "@/components/mdx-components";
+import { CodeBlockWrapper } from "@/components/mdx/CodeBlockWrapper";
+
+interface PreviewData {
+  displayTitle: string;
+  mdxSource: any;
+}
+
+const components = {
+  ...mdxComponents,
+  p: (props: any) => <div {...props} className="my-4 last:mb-0" />,
+  figure: ({ children, "data-rehype-pretty-code-figure": isPrettyCode, ...props }: any) => {
+    if (isPrettyCode !== undefined || 'data-rehype-pretty-code-figure' in props) {
+      return <CodeBlockWrapper {...props} data-rehype-pretty-code-figure={isPrettyCode}>{children}</CodeBlockWrapper>;
+    }
+    return <figure {...props}>{children}</figure>;
+  },
+};
 
 interface EditorPreviewProps {
   content: string;
@@ -13,7 +32,7 @@ interface EditorPreviewProps {
 
 export function EditorPreview({ content }: EditorPreviewProps) {
   const debouncedContent = useDebounce(content, 500);
-  const [preview, setPreview] = useState<React.ReactNode>(null);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -29,7 +48,7 @@ export function EditorPreview({ content }: EditorPreviewProps) {
 
   useEffect(() => {
     if (!debouncedContent) {
-      setPreview(null);
+      setPreviewData(null);
       setError(false);
       return;
     }
@@ -37,8 +56,13 @@ export function EditorPreview({ content }: EditorPreviewProps) {
     startTransition(async () => {
       try {
         setError(false);
-        const jsx = await renderMdxPreviewAction(debouncedContent);
-        setPreview(jsx);
+        const result = await renderMdxPreviewAction(debouncedContent);
+        if (result.success) {
+           setPreviewData({
+             displayTitle: result.displayTitle,
+             mdxSource: result.mdxSource
+           });
+        }
       } catch (err) {
         console.error("Error rendering preview:", err);
         setError(true);
@@ -61,15 +85,16 @@ export function EditorPreview({ content }: EditorPreviewProps) {
         <ErrorBoundary key={debouncedContent}>
           {error ? (
             <MdxErrorFallback />
-          ) : preview ? (
-            <div className="animate-in fade-in duration-500">
-              <Suspense fallback={
-                <div className="flex flex-col items-center justify-center py-10 opacity-30">
-                  <RefreshCw className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              }>
-                {preview}
-              </Suspense>
+          ) : previewData ? (
+            <div className="animate-in fade-in duration-500 mdx-preview-root">
+              {previewData.displayTitle && (
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground mb-6 md:mb-8">
+                  {previewData.displayTitle}
+                </h1>
+              )}
+              <article className="prose max-w-none dark:prose-invert">
+                 <MDXRemote {...previewData.mdxSource} components={components} />
+              </article>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center gap-4 opacity-40">

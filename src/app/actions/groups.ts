@@ -24,12 +24,15 @@ export async function createGroupAction(formData: FormData) {
   const docFoldersStr = formData.get("docFolders") as string;
   const docFolders = docFoldersStr ? docFoldersStr.split(",").map(s => s.trim()).filter(Boolean) : [];
 
+  const imageUrl = formData.get("imageUrl") as string;
+
   if (!name?.trim()) throw new Error("El nombre del grupo es requerido.");
 
   await prisma.group.create({
     data: {
       name: name.trim(),
       description: description?.trim() || null,
+      imageUrl: imageUrl?.trim() || null,
       startDate: startDateStr ? new Date(startDateStr) : null,
       endDate: endDateStr ? new Date(endDateStr) : null,
       registrationOpen: true,
@@ -55,6 +58,8 @@ export async function updateGroupAction(formData: FormData) {
   const docFoldersStr = formData.get("docFolders") as string;
   const docFolders = docFoldersStr ? docFoldersStr.split(",").map(s => s.trim()).filter(Boolean) : [];
 
+  const imageUrl = formData.get("imageUrl") as string;
+
   if (!groupId) throw new Error("ID de grupo requerido.");
 
   await prisma.group.update({
@@ -62,6 +67,7 @@ export async function updateGroupAction(formData: FormData) {
     data: {
       name: name?.trim() || undefined,
       description: description?.trim() || null,
+      imageUrl: imageUrl?.trim() || null,
       startDate: startDateStr ? new Date(startDateStr) : null,
       endDate: endDateStr ? new Date(endDateStr) : null,
       registrationOpen,

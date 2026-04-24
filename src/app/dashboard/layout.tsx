@@ -36,43 +36,50 @@ export default async function DashboardLayout({
     <div className="h-full flex flex-col bg-background">
       {/* Top navbar */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center group-hover:scale-105 transition-transform">
-                <FileText className="w-4 h-4 text-background" />
-              </div>
-              <span className="font-black tracking-tight text-lg">FusionDoc</span>
-            </Link>
- 
-            {/* Nav links - desktop */}
-            <nav className="hidden md:flex items-center gap-1">
-              <Link
-                href="/dashboard/groups"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-              >
-                <Users className="w-4 h-4" />
-                Grupos
+            {/* Left Section: Logo + Nav */}
+            <div className="flex items-center gap-8">
+              {/* Logo */}
+              <Link href="/" className="flex items-center gap-2.5 group">
+                <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <FileText className="w-4 h-4 text-background" />
+                </div>
+                <span className="font-black tracking-tight text-lg">FusionDoc</span>
               </Link>
-              <Link
-                href="/dashboard/docs"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-              >
-                <Files className="w-4 h-4" />
-                Documentación
-              </Link>
-              {isAdmin && (
-                <Link
-                  href="/dashboard/settings"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
-                >
-                  <Settings className="w-4 h-4" />
-                  Configuración
-                </Link>
-              )}
-            </nav>
-            <div className="flex items-center gap-2 ml-auto">
+  
+              {/* Nav links - desktop */}
+              <nav className="hidden md:flex items-center gap-1">
+                {isAdmin && (
+                  <>
+                    <Link
+                      href="/dashboard/groups"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                    >
+                      <Users className="w-4 h-4" />
+                      Grupos
+                    </Link>
+                    <Link
+                      href="/dashboard/docs"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                    >
+                      <Files className="w-4 h-4" />
+                      Documentación
+                    </Link>
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Configuración
+                    </Link>
+                  </>
+                )}
+              </nav>
+            </div>
+
+            {/* Right Section: Controls */}
+            <div className="flex items-center gap-2">
                 <div className="mr-1">
                   <ConfigControls 
                     availableThemes={availableThemes} 

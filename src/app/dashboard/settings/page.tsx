@@ -28,17 +28,14 @@ export default async function SettingsPage() {
   const themes = await getAvailableThemes();
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col gap-2 mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
-            <Settings className="w-6 h-6" />
-          </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+        <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-black tracking-tighter uppercase italic">Configuración</h1>
+          <p className="text-muted-foreground font-medium">
+            Gestiona los parámetros globales del sistema, conexión con GitHub y apariencia visual.
+          </p>
         </div>
-        <p className="text-muted-foreground font-medium">
-          Gestiona los parámetros globales del sistema, conexión con GitHub y apariencia visual.
-        </p>
       </div>
 
       <SettingsForm initialSettings={settings} themes={themes} />

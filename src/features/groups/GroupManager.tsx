@@ -35,6 +35,7 @@ import {
   FolderLock,
   FolderOpen,
   FileText,
+  Shield,
 } from "lucide-react";
 import {
   createGroupAction,
@@ -50,6 +51,7 @@ interface Group {
   id: string;
   name: string;
   description: string | null;
+  imageUrl?: string | null;
   registrationOpen: boolean;
   startDate: Date | string | null;
   endDate: Date | string | null;
@@ -124,59 +126,75 @@ function GroupFormDialog({
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-[2rem] border-border/40 shadow-2xl">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Crear Grupo" : "Editar Grupo"}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-black uppercase italic">{mode === "create" ? "Crear Grupo" : "Editar Grupo"}</DialogTitle>
+          <DialogDescription className="text-base font-medium">
             {mode === "create"
               ? "Completa la información para crear un nuevo grupo."
               : "Modifica los datos del grupo."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           {group && <input type="hidden" name="groupId" value={group.id} />}
 
           {/* Nombre */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Nombre del grupo <span className="text-destructive">*</span></Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Nombre del grupo <span className="text-destructive">*</span></Label>
             <Input
               id="name"
               name="name"
               placeholder="Ej: Desarrollo Web 2025"
               defaultValue={group?.name}
               required
+              className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all"
             />
           </div>
 
           {/* Descripción */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción</Label>
+          <div className="space-y-2.5">
+            <Label htmlFor="description" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Descripción</Label>
             <Input
               id="description"
               name="description"
               placeholder="Descripción breve del grupo"
               defaultValue={group?.description || ""}
+              className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all"
+            />
+          </div>
+
+          {/* Image URL */}
+          <div className="space-y-2.5">
+            <Label htmlFor="imageUrl" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">URL de la Imagen</Label>
+            <Input
+              id="imageUrl"
+              name="imageUrl"
+              placeholder="https://images.unsplash.com/..."
+              defaultValue={group?.imageUrl || ""}
+              className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all"
             />
           </div>
 
           {/* Fechas */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Fecha de inicio</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2.5">
+              <Label htmlFor="startDate" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Fecha de inicio</Label>
               <Input
                 id="startDate"
                 name="startDate"
                 type="datetime-local"
                 defaultValue={toInputDate(group?.startDate)}
+                className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="endDate">Fecha de fin</Label>
+            <div className="space-y-2.5">
+              <Label htmlFor="endDate" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Fecha de fin</Label>
               <Input
                 id="endDate"
                 name="endDate"
                 type="datetime-local"
                 defaultValue={toInputDate(group?.endDate)}
+                className="h-12 rounded-xl bg-muted/30 border-border/50 focus:bg-background transition-all"
               />
             </div>
           </div>
@@ -184,12 +202,12 @@ function GroupFormDialog({
 
           {/* Estado de inscripción (solo edit) */}
           {mode === "edit" && (
-            <div className="space-y-2">
-              <Label>Estado de inscripción</Label>
+            <div className="space-y-2.5">
+              <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Estado de inscripción</Label>
               <select
                 name="registrationOpen"
                 defaultValue={group?.registrationOpen ? "true" : "false"}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                className="w-full h-12 px-4 rounded-xl border border-border/50 bg-muted/30 text-sm focus:bg-background transition-all"
               >
                 <option value="true">Abierta</option>
                 <option value="false">Cerrada</option>
@@ -198,24 +216,21 @@ function GroupFormDialog({
           )}
 
           {/* Documentaciones asignadas */}
-          <div className="space-y-3">
+          <div className="space-y-3 pt-2">
             <div className="flex items-center gap-2">
-              <Label className="flex-1">Documentaciones asignadas</Label>
+              <Label className="flex-1 text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Documentaciones asignadas</Label>
               {selectedFolders.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-[10px] font-black bg-primary/10 text-primary">
                   {selectedFolders.length} seleccionada{selectedFolders.length > 1 ? "s" : ""}
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground -mt-1">
-              Solo los miembros aprobados de este grupo podrán acceder a estas documentaciones.
-            </p>
             {availableFolders.length === 0 ? (
               <p className="text-sm text-muted-foreground py-3 text-center border border-dashed rounded-xl">
                 No hay carpetas de docs disponibles.
               </p>
             ) : (
-              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar">
                 {availableFolders.map((folder) => {
                   const isSelected = selectedFolders.includes(folder.id);
                   return (
@@ -223,31 +238,31 @@ function GroupFormDialog({
                       key={folder.id}
                       type="button"
                       onClick={() => toggleFolder(folder.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${
                         isSelected
                           ? "border-primary/50 bg-primary/5 text-primary"
-                          : "border-border/50 bg-muted/10 hover:bg-muted/20 text-foreground"
+                          : "border-border/30 bg-muted/10 hover:bg-muted/20 text-foreground"
                       }`}
                     >
-                      {isSelected ? (
-                        <FolderLock className="h-4 w-4 shrink-0" />
-                      ) : (
-                        <FolderOpen className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      )}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                        isSelected ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {isSelected ? <FolderLock className="h-5 w-5" /> : <FolderOpen className="h-5 w-5" />}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{folder.name}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{folder.id}</p>
+                        <p className="text-sm font-bold truncate">{folder.name}</p>
+                        <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-tight">{folder.id}</p>
                       </div>
                       <div
-                        className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-all ${
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
                           isSelected
                             ? "border-primary bg-primary"
                             : "border-muted-foreground/30"
                         }`}
                       >
                         {isSelected && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </div>
@@ -258,11 +273,11 @@ function GroupFormDialog({
             )}
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="pt-4 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold">
               Cancelar
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} className="rounded-xl px-8 font-black uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
               {isPending ? "Guardando..." : mode === "create" ? "Crear Grupo" : "Guardar Cambios"}
             </Button>
           </DialogFooter>
@@ -294,37 +309,39 @@ function DeleteGroupDialog({ group }: { group: Group }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-          <Trash2 className="h-3.5 w-3.5" />
+        <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors">
+          <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-[2rem] border-border/40">
         <DialogHeader>
-          <DialogTitle>Eliminar Grupo</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-black uppercase italic">Eliminar Grupo</DialogTitle>
+          <DialogDescription className="text-base font-medium">
             Esta acción no se puede deshacer. Se eliminarán todas las membresías de{" "}
-            <strong>{group.name}</strong>.
+            <strong className="text-foreground">{group.name}</strong>.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <Label htmlFor="confirm-delete">
-            Escribe <strong>ELIMINAR</strong> para confirmar
+        <div className="space-y-3 py-4">
+          <Label htmlFor="confirm-delete" className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">
+            Escribe <strong className="text-destructive">ELIMINAR</strong> para confirmar
           </Label>
           <Input
             id="confirm-delete"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder="ELIMINAR"
+            className="h-12 rounded-xl bg-destructive/5 border-destructive/20 focus:bg-background transition-all text-center font-black tracking-widest uppercase"
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={confirm !== "ELIMINAR" || isPending}
+            className="rounded-xl px-8 font-black uppercase tracking-widest shadow-lg shadow-destructive/20 transition-all"
           >
-            {isPending ? "Eliminando..." : "Eliminar Grupo"}
+            {isPending ? "Eliminando..." : "Confirmar Eliminación"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -349,178 +366,104 @@ export function GroupManager({
         await toggleGroupRegistrationAction(groupId, !currentState);
         toast.success(currentState ? "Inscripciones cerradas" : "Inscripciones abiertas");
       } catch {
-        toast.error("Error al cambiar el estado");
+        toast.error("Error al cambiar estado");
       }
     });
   };
 
-  const now = new Date();
-  const activeGroups = groups.filter((g) => !g.endDate || new Date(g.endDate) >= now);
-  const archivedGroups = groups.filter((g) => g.endDate && new Date(g.endDate) < now);
+  const defaultImage = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
 
   const GroupGrid = ({ items }: { items: Group[] }) => {
-    if (items.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-border rounded-3xl text-center">
-          <div className="p-4 bg-muted/20 rounded-full mb-4">
-            <BookOpen className="h-10 w-10 text-muted-foreground/40" />
-          </div>
-          <p className="text-xl font-semibold text-muted-foreground">No hay grupos en esta categoría</p>
-          <p className="text-sm text-muted-foreground/60 mt-1">Crea el primero usando el botón de arriba</p>
-        </div>
-      );
-    }
+    if (items.length === 0) return null;
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {items.map((group) => (
-          <div key={group.id} className="relative group">
-            <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Card className="h-full flex flex-col relative bg-background/60 backdrop-blur-xl border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
-              <div className="absolute top-0 left-0 w-full h-0.5 bg-foreground/10" />
-
-              <CardHeader className="pb-4 pt-6 px-6">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="flex items-center justify-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-2.5 h-6 font-bold uppercase tracking-wider">
-                      <Users className="h-3 w-3 mr-1.5" />
-                      {group._count.memberships} Miembros
-                    </Badge>
-                    <Badge
-                      variant={group.registrationOpen ? "default" : "secondary"}
+          <div key={group.id} className="relative group perspective-1000">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[1.2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <Card className="h-full flex flex-col relative bg-card/60 backdrop-blur-3xl border-border/40 rounded-[1rem] overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-lg hover:-translate-y-1 p-0">
+              {/* Header Image Section - Improved framing */}
+              <div className="relative h-32 w-full overflow-hidden bg-muted/20">
+                 <img 
+                  src={group.imageUrl || defaultImage} 
+                  alt={group.name}
+                  className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                 />
+                 
+                 {/* Status Overlay - Text Badges */}
+                 <div className="absolute top-2 right-2">
+                    <Badge 
+                      variant="secondary" 
                       className={cn(
-                        "text-[10px] px-2.5 h-6 font-bold uppercase tracking-wider",
-                        group.registrationOpen ? "bg-emerald-500 hover:bg-emerald-600 shadow-sm" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                        "text-[7px] px-1.5 h-4 font-black uppercase tracking-widest border-none shadow-lg backdrop-blur-md",
+                        group.registrationOpen 
+                          ? "bg-emerald-500/90 text-white" 
+                          : "bg-amber-500/90 text-white"
                       )}
                     >
-                      {group.registrationOpen ? (
-                        <><Unlock className="h-3 w-3 mr-1.5" /> Abierto</>
-                      ) : (
-                        <><Lock className="h-3 w-3 mr-1.5" /> Cerrado</>
-                      )}
+                      {group.registrationOpen ? "Abierto" : "Cerrado"}
                     </Badge>
-                  </div>
-                  
-                  <CardTitle className="text-xl font-black tracking-tight group-hover:text-primary transition-colors leading-tight max-w-[90%]">
-                    {group.name}
-                  </CardTitle>
-                </div>
+                 </div>
+              </div>
+
+              <CardHeader className="pb-0 pt-3 px-4 flex flex-col items-center">
+                <CardTitle className="text-sm font-black tracking-tight group-hover:text-primary transition-colors truncate text-center w-full">
+                  {group.name}
+                </CardTitle>
               </CardHeader>
 
-              <CardContent className="flex-1 px-6 py-2 space-y-6">
-                {/* Fechas Simétricas */}
-                {(group.startDate || group.endDate) && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-muted/30 border border-border/50 group-hover:bg-muted/50 transition-colors">
-                      <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-1.5">Inicio</span>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-primary/70" />
-                        <span className="text-xs font-bold tabular-nums">
-                          {group.startDate ? new Date(group.startDate).toLocaleDateString("es", { day: '2-digit', month: '2-digit', year: 'numeric' }) : "--/--/--"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-muted/30 border border-border/50 group-hover:bg-muted/50 transition-colors">
-                      <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-1.5">Fin</span>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-destructive/70" />
-                        <span className="text-xs font-bold tabular-nums">
-                          {group.endDate ? new Date(group.endDate).toLocaleDateString("es", { day: '2-digit', month: '2-digit', year: 'numeric' }) : "--/--/--"}
-                        </span>
-                      </div>
+              <CardContent className="px-4 py-3 flex flex-col justify-center items-center">
+                <div className="space-y-3 w-full">
+                  {/* Actions Toolbar - Integrated & Centered */}
+                  <div className="flex items-center w-full bg-muted/40 p-0.5 rounded-lg border border-border/20">
+                    <GroupFormDialog
+                      mode="edit"
+                      group={group}
+                      availableFolders={availableFolders}
+                      trigger={
+                        <Button variant="ghost" size="sm" className="flex-1 h-6 font-bold text-[8px] gap-1 text-muted-foreground hover:text-primary rounded-md">
+                          <Pencil className="h-2.5 w-2.5" />
+                        </Button>
+                      }
+                    />
+                    <div className="w-px h-3 bg-border/20 mx-0.5" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        "flex-1 h-6 font-bold text-[8px] rounded-md transition-all",
+                        group.registrationOpen ? "hover:text-amber-600" : "hover:text-emerald-600"
+                      )}
+                      onClick={() => handleToggle(group.id, group.registrationOpen)}
+                      disabled={isPending}
+                    >
+                      {group.registrationOpen ? <Unlock className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
+                    </Button>
+                    <div className="w-px h-3 bg-border/20 mx-0.5" />
+                    <div className="flex-1 flex justify-center">
+                      <DeleteGroupDialog group={group} />
                     </div>
                   </div>
-                )}
 
-                {/* Docs asignadas con Iconos Dinámicos */}
-                {group.docFolders.length > 0 ? (
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] flex items-center justify-center gap-2">
-                      <FolderLock className="h-3.5 w-3.5" />
-                      Documentación Disponible
-                    </p>
-                    <div className="flex flex-col gap-2 w-full max-w-sm mx-auto">
-                      {(group.docFoldersWithTitles ?? []).map((doc) => (
-                        <Link 
-                          key={doc.id} 
-                          href={`/${doc.id}`}
-                          className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-primary/5 border border-primary/10 text-xs font-bold text-foreground hover:bg-primary/10 hover:border-primary/30 transition-all group/doc shadow-sm relative overflow-hidden"
-                        >
-                          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
-                            <DynamicIcon icon={doc.icon || "lucide:file-text"} width="16" height="16" />
-                          </div>
-                          <span className="flex-1 truncate">{doc.title}</span>
-                          {doc.isPublic ? (
-                            <Badge variant="outline" className="text-[9px] h-5 px-1.5 font-black bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-tighter">Público</Badge>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground font-mono opacity-50 uppercase tracking-tighter text-[9px]">Protegido</span>
-                          )}
-                          <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover/doc:translate-x-1 transition-transform" />
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground/50 italic py-2">
-                    <FolderOpen className="h-3.5 w-3.5" />
-                    Sin documentaciones asignadas
-                  </div>
-                )}
-              </CardContent>
-
-              <CardFooter className="px-6 pb-6 pt-2 flex flex-col gap-3">
-                {/* Actions Centralized Toolbar */}
-                <div className="flex items-center w-full bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
-                  <GroupFormDialog
-                    mode="edit"
-                    group={group}
-                    availableFolders={availableFolders}
-                    trigger={
-                      <Button variant="ghost" size="sm" className="flex-1 h-9 font-bold text-xs gap-2 text-muted-foreground hover:text-primary hover:bg-background rounded-xl transition-all">
-                        <Pencil className="h-3.5 w-3.5" />
-                        <span className="hidden lg:inline">Editar</span>
-                      </Button>
-                    }
-                  />
-                  <div className="w-px h-5 bg-border/60 mx-1" />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`flex-1 h-9 font-bold text-xs gap-2 rounded-xl transition-all ${
-                      group.registrationOpen
-                        ? "text-muted-foreground hover:text-amber-600 hover:bg-amber-50"
-                        : "text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50"
-                    }`}
-                    onClick={() => handleToggle(group.id, group.registrationOpen)}
-                    disabled={isPending}
-                  >
-                    {group.registrationOpen ? (
-                      <><Lock className="h-3.5 w-3.5" /><span className="hidden lg:inline">Cerrar</span></>
-                    ) : (
-                      <><Unlock className="h-3.5 w-3.5" /><span className="hidden lg:inline">Abrir</span></>
-                    )}
-                  </Button>
-                  <div className="w-px h-5 bg-border/60 mx-1" />
-                  <div className="flex-1 flex justify-center">
-                    <DeleteGroupDialog group={group} />
-                  </div>
+                  <Link href={`/dashboard/groups/${group.id}`} className="w-full block">
+                    <Button variant="outline" className="w-full h-7 text-[8px] font-black uppercase tracking-widest gap-1 rounded-lg border-primary/20 bg-primary/5 hover:bg-primary hover:text-primary-foreground transition-all flex justify-center items-center">
+                      <BookOpen className="h-2.5 w-2.5" />
+                      Ver Documentación
+                    </Button>
+                  </Link>
                 </div>
-
-                {/* View members Button (Symmetric) */}
-                <Link href={`/dashboard/groups/${group.id}`} className="w-full">
-                  <Button variant="outline" className="w-full h-11 text-xs font-black uppercase tracking-[0.1em] gap-2 rounded-2xl border-border/60 bg-background/40 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm">
-                    <Users className="h-4 w-4" />
-                    Ver Miembros
-                    <ChevronRight className="h-4 w-4 ml-auto" />
-                  </Button>
-                </Link>
-              </CardFooter>
+              </CardContent>
             </Card>
           </div>
         ))}
       </div>
     );
   };
+
+  const now = new Date();
+  const activeGroups = groups.filter((g) => !g.endDate || new Date(g.endDate) >= now);
+  const archivedGroups = groups.filter((g) => g.endDate && new Date(g.endDate) < now);
 
   return (
     <div className="space-y-8">

@@ -14,6 +14,8 @@ import DynamicIcon from "@/components/DynamicIcon";
 interface Group {
   id: string;
   name: string;
+  description?: string | null;
+  imageUrl?: string | null;
   registrationOpen: boolean;
   startDate: Date | string | null;
   endDate: Date | string | null;
@@ -49,6 +51,8 @@ export function GroupCatalog({ groups }: { groups: GroupWithMembership[] }) {
     });
   };
 
+  const defaultImage = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
+
   if (groups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-border rounded-3xl text-center">
@@ -65,136 +69,91 @@ export function GroupCatalog({ groups }: { groups: GroupWithMembership[] }) {
 
   return (
     <div className="space-y-6">
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {groups.map((group) => {
           const status = statuses[group.id];
           const isRegistrationClosed = !group.registrationOpen;
 
           return (
-            <div key={group.id} className="relative group">
-              <div className="absolute inset-0 bg-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <Card className="h-full flex flex-col relative bg-background/60 backdrop-blur-xl border-border/50 rounded-2xl overflow-hidden hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-0.5 bg-foreground/10" />
-
-                <CardHeader className="pb-4 pt-6 px-6 flex flex-col items-center text-center">
-                  <div className="space-y-4 w-full">
-                    <CardTitle className="text-xl font-black tracking-tight group-hover:text-primary transition-colors leading-tight">
-                      {group.name}
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="flex-1 px-6 py-2 flex flex-col justify-between gap-6">
-                  {/* Dates Simétricas */}
-                  {(group.startDate || group.endDate) && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-muted/30 border border-border/50 group-hover:bg-muted/50 transition-colors">
-                        <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-1.5 text-center">Inicio</span>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-primary/70" />
-                          <span className="text-xs font-bold tabular-nums text-center whitespace-nowrap">
-                            {group.startDate ? new Date(group.startDate).toLocaleDateString("es", { day: '2-digit', month: '2-digit', year: 'numeric' }) : "--/--/--"}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-muted/30 border border-border/50 group-hover:bg-muted/50 transition-colors">
-                        <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-1.5 text-center">Fin</span>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-destructive/70" />
-                          <span className="text-xs font-bold tabular-nums text-center whitespace-nowrap">
-                            {group.endDate ? new Date(group.endDate).toLocaleDateString("es", { day: '2-digit', month: '2-digit', year: 'numeric' }) : "--/--/--"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-
-                  {/* Assigned Documentation (Visible to everyone, but links only for approved) */}
-                  {(group.docFoldersWithTitles ?? []).length > 0 && (
-                    <div className="space-y-4 pt-2 border-t border-border/40">
-                       <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center justify-center gap-2">
-                         <FolderLock className="h-4 w-4 text-primary" />
-                         Documentación Incluida
-                       </h4>
-                       <div className="flex flex-col gap-2.5">
-                         {(group.docFoldersWithTitles ?? []).map((doc) => {
-                           const content = (
-                             <div className="flex items-center gap-4">
-                               <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0 transition-transform group-hover/docinfo:scale-105">
-                                 <DynamicIcon icon={doc.icon || "lucide:file-text"} width="24" height="24" />
-                               </div>
-                               <div className="flex flex-col min-w-0">
-                                 <span className="font-extrabold text-sm truncate">{doc.title}</span>
-                                 <span className="text-[10px] text-muted-foreground/60 uppercase font-black tracking-tighter">Acceso Protegido</span>
-                               </div>
-                             </div>
-                           );
-
-                           if (status === "APPROVED") {
-                             return (
-                               <Link
-                                 key={doc.id}
-                                 href={`/${doc.id}`}
-                                 className="flex items-center justify-between gap-3 px-5 py-4 rounded-3xl bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/30 transition-all group/docinfo shadow-sm"
-                               >
-                                 {content}
-                                 <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border/40 group-hover/docinfo:translate-x-1.5 transition-transform">
-                                   <ChevronRight className="h-4 w-4 text-primary" />
-                                 </div>
-                               </Link>
-                             );
-                           }
-
-                           return (
-                             <div
-                               key={doc.id}
-                               className="flex items-center justify-between gap-3 px-5 py-4 rounded-3xl bg-muted/20 border border-border/30 opacity-80 grayscale-[0.5] group/docinfo"
-                             >
-                               {content}
-                               <Lock className="h-4 w-4 text-muted-foreground/40" />
-                             </div>
-                           );
-                         })}
+            <div key={group.id} className="relative group perspective-1000">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-[1.2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+                <Card className="h-full flex flex-col relative bg-card/60 backdrop-blur-3xl border-border/40 rounded-[1rem] overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-lg hover:-translate-y-1 p-0">
+                  {/* Wrappable Content Section */}
+                  <div className="relative flex flex-col flex-1">
+                    {status === "APPROVED" && (
+                      <Link 
+                        href={`/dashboard/groups/${group.id}`}
+                        className="absolute inset-0 z-10"
+                        title="Ver detalles del grupo"
+                      />
+                    )}
+                    
+                    {/* Header Image Section */}
+                    <div className="relative h-32 w-full overflow-hidden bg-muted/20">
+                       <img 
+                        src={group.imageUrl || defaultImage} 
+                        alt={group.name}
+                        className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+                       />
+                       
+                       {/* Status Overlay - Text Badges */}
+                       <div className="absolute top-2 right-2 z-20">
+                          <Badge 
+                            variant="secondary" 
+                            className={cn(
+                              "text-[7px] px-1.5 h-4 font-black uppercase tracking-widest border-none shadow-lg backdrop-blur-md",
+                              group.registrationOpen 
+                                ? "bg-emerald-500/90 text-white" 
+                                : "bg-amber-500/90 text-white"
+                            )}
+                          >
+                            {group.registrationOpen ? "Abierto" : "Cerrado"}
+                          </Badge>
                        </div>
                     </div>
-                  )}
+  
+                    <CardHeader className="pb-0 pt-3 px-4 flex flex-col items-center">
+                      <CardTitle className="text-sm font-black tracking-tight leading-tight group-hover:text-primary transition-colors truncate text-center w-full">
+                        {group.name}
+                      </CardTitle>
+                    </CardHeader>
+  
+                    <CardContent className="flex-1 px-4 py-2 flex flex-col justify-center items-center gap-3">
+                      {/* Dates - Micro */}
+                      {(group.startDate || group.endDate) && (
+                        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-muted/30 border border-border/10">
+                          <Calendar className="w-2.5 h-2.5 text-muted-foreground/60" />
+                          <div className="text-[9px] font-bold tabular-nums truncate">
+                            {group.startDate ? new Date(group.startDate).toLocaleDateString("es", { day: '2-digit', month: 'short' }) : "..."}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </div>
 
-                  {/* Action buttons Simétricos */}
-                  <div className="mt-4 pt-4 border-t border-border/40">
+                  {/* Action Section - Keep interactive buttons outside the Link overlay or manage z-index */}
+                  <div className="px-4 pb-4 mt-auto">
                     {status === "APPROVED" ? (
-                       null 
+                      <div className="flex items-center justify-center gap-1 p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-bold text-[8px] uppercase tracking-widest">
+                        <BookOpen className="h-2.5 w-2.5" />
+                        Ver Documentación
+                      </div>
                     ) : status === "PENDING" ? (
-                      <Button disabled variant="secondary" className="w-full h-11 rounded-2xl text-xs font-bold uppercase tracking-wider bg-muted/50 border border-border/60">
-                        <Clock className="h-4 w-4 mr-2.5" />
-                        Solicitud pendiente
-                      </Button>
-                    ) : status === "REJECTED" ? (
-                      <Button
-                        className="w-full h-11 rounded-2xl text-xs font-bold uppercase tracking-wider"
-                        variant="outline"
-                        onClick={() => handleJoin(group.id)}
-                        disabled={!!isRegistrationClosed || loadingId === group.id}
-                      >
-                        Solicitar de nuevo
+                      <Button disabled variant="secondary" className="w-full h-7 rounded-lg text-[8px] font-bold uppercase bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                        Pendiente
                       </Button>
                     ) : (
                       <Button
-                        className="w-full h-11 rounded-2xl text-xs font-black uppercase tracking-[0.15em] shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all"
+                        className="w-full h-7 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-md bg-primary hover:bg-primary/90 transition-all relative z-20"
                         onClick={() => handleJoin(group.id)}
                         disabled={!!isRegistrationClosed || loadingId === group.id}
                       >
-                        {loadingId === group.id
-                          ? "Procesando..."
-                          : isRegistrationClosed
-                          ? "Cerrado"
-                          : "Inscribirme"}
+                        {loadingId === group.id ? "..." : isRegistrationClosed ? "Cerrado" : "Unirse"}
                       </Button>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </Card>
             </div>
           );
         })}

@@ -80,19 +80,21 @@ export default function DashboardNav({ user, isAdmin, themes, siteConfig }: Dash
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/groups" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Mis Grupos
-              </Link>
-            </DropdownMenuItem>
             {isAdmin && (
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="flex items-center gap-2 font-bold text-primary">
-                  <Settings className="w-4 h-4" />
-                  Configuración
-                </Link>
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/groups" className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Mis Grupos
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings" className="flex items-center gap-2 font-bold text-primary">
+                    <Settings className="w-4 h-4" />
+                    Configuración
+                  </Link>
+                </DropdownMenuItem>
+              </>
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -145,16 +147,16 @@ export default function DashboardNav({ user, isAdmin, themes, siteConfig }: Dash
               </Badge>
             )}
 
-            <nav className="flex flex-col gap-1 flex-1">
-              <Link
-                href="/dashboard/groups"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted/50 transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Users className="w-4 h-4" />
-                Grupos
-              </Link>
-              {isAdmin && (
+            {isAdmin && (
+              <nav className="flex flex-col gap-1 flex-1">
+                <Link
+                  href="/dashboard/groups"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted/50 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Users className="w-4 h-4" />
+                  Grupos
+                </Link>
                 <Link
                   href="/dashboard/settings"
                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-bold text-primary hover:bg-primary/5 transition-colors"
@@ -163,8 +165,8 @@ export default function DashboardNav({ user, isAdmin, themes, siteConfig }: Dash
                   <Settings className="w-4 h-4" />
                   Configuración
                 </Link>
-              )}
-            </nav>
+              </nav>
+            )}
 
             <div className="flex items-center gap-4 px-3 py-4 border-t border-border/50 mt-auto">
               <div className="flex items-center gap-2">
